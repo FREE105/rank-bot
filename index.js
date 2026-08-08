@@ -27,7 +27,7 @@ const RANK_EDITOR_ROLE = "Rank editor";
 const PORT = process.env.PORT || 3000;
 
 // ======================================================
-// WEB SERVER PRE RENDER
+// RENDER WEB SERVER
 // ======================================================
 
 http.createServer((req, res) => {
@@ -37,7 +37,7 @@ http.createServer((req, res) => {
 
     res.end("CZ/SK/EN Rank Bot is online!");
 }).listen(PORT, "0.0.0.0", () => {
-    console.log(`Web server beží na porte ${PORT}`);
+    console.log(`Web server bezi na porte ${PORT}`);
 });
 
 // ======================================================
@@ -54,176 +54,328 @@ const client = new Client({
 // RANKY
 // ======================================================
 
-const ranks = [
-    { name: "LT1", value: "LT1" },
-    { name: "LT2", value: "LT2" },
-    { name: "LT3", value: "LT3" },
-    { name: "LT4", value: "LT4" },
-    { name: "LT5", value: "LT5" },
-
-    { name: "HT1", value: "HT1" },
-    { name: "HT2", value: "HT2" },
-    { name: "HT3", value: "HT3" },
-    { name: "HT4", value: "HT4" },
-    { name: "HT5", value: "HT5" }
+const rankChoices = [
+    {
+        name: "LT1",
+        value: "LT1"
+    },
+    {
+        name: "LT2",
+        value: "LT2"
+    },
+    {
+        name: "LT3",
+        value: "LT3"
+    },
+    {
+        name: "LT4",
+        value: "LT4"
+    },
+    {
+        name: "LT5",
+        value: "LT5"
+    },
+    {
+        name: "HT1",
+        value: "HT1"
+    },
+    {
+        name: "HT2",
+        value: "HT2"
+    },
+    {
+        name: "HT3",
+        value: "HT3"
+    },
+    {
+        name: "HT4",
+        value: "HT4"
+    },
+    {
+        name: "HT5",
+        value: "HT5"
+    }
 ];
 
 // ======================================================
-// EMBED TÉMY
+// EMBED TEMY
 // ======================================================
 
 const themes = {
-
     aurora: {
-        name: "🌌 Polárna žiara",
-        colors: [0x00ff88, 0x00ccff, 0x8a2be2],
-        emojis: ["🌌", "💚", "💙", "💜", "✨"]
+        label: "Polarna ziara",
+        emoji: "🌌",
+        colors: [0x00FF88, 0x00CCFF, 0x8A2BE2],
+        effects: [
+            "🌌 ✨ 💚 💙 💜 ✨ 🌌",
+            "💚 🌌 ✨ 💙 ✨ 💜 🌌",
+            "💙 ✨ 🌌 💜 🌌 💚 ✨"
+        ]
     },
 
     snow: {
-        name: "❄️ Sneženie",
-        colors: [0x9eeaff, 0xffffff, 0x72bfff],
-        emojis: ["❄️", "❄️", "☃️", "❄️", "✨"]
+        label: "Snezenie",
+        emoji: "❄️",
+        colors: [0x9EEAFF, 0xFFFFFF, 0x72BFFF],
+        effects: [
+            "❄️ ❄️ ✨ ❄️ ❄️",
+            "❄️ ✨ ❄️ ☃️ ❄️",
+            "✨ ❄️ ❄️ ❄️ ✨"
+        ]
     },
 
     fire: {
-        name: "🔥 Oheň",
-        colors: [0xff0000, 0xff6600, 0xffcc00],
-        emojis: ["🔥", "🔥", "🧨", "🔥", "✨"]
+        label: "Ohen",
+        emoji: "🔥",
+        colors: [0xFF0000, 0xFF6600, 0xFFCC00],
+        effects: [
+            "🔥 🔥 ✨ 🔥 🔥",
+            "🔥 ✨ 🔥 💥 🔥",
+            "✨ 🔥 🔥 🔥 ✨"
+        ]
     },
 
     ice: {
-        name: "🧊 Ľad",
-        colors: [0x00ccff, 0x66e6ff, 0xffffff],
-        emojis: ["🧊", "❄️", "💎", "🧊", "✨"]
+        label: "Lad",
+        emoji: "🧊",
+        colors: [0x00CCFF, 0x66E6FF, 0xFFFFFF],
+        effects: [
+            "🧊 ❄️ 💎 ❄️ 🧊",
+            "❄️ 💎 🧊 💎 ❄️",
+            "💎 🧊 ❄️ 🧊 💎"
+        ]
     },
 
     storm: {
-        name: "⚡ Búrka",
-        colors: [0x3030a0, 0x6666ff, 0xffff00],
-        emojis: ["⚡", "🌩️", "⚡", "🌩️", "✨"]
+        label: "Burka",
+        emoji: "⚡",
+        colors: [0x3030A0, 0x6666FF, 0xFFFF00],
+        effects: [
+            "🌩️ ⚡ 🌩️ ⚡ 🌩️",
+            "⚡ 🌩️ ✨ 🌩️ ⚡",
+            "🌩️ ⚡ 💥 ⚡ 🌩️"
+        ]
     },
 
     ocean: {
-        name: "🌊 Oceán",
-        colors: [0x0066ff, 0x00ccff, 0x0044aa],
-        emojis: ["🌊", "🐋", "💧", "🌊", "✨"]
+        label: "Ocean",
+        emoji: "🌊",
+        colors: [0x0066FF, 0x00CCFF, 0x0044AA],
+        effects: [
+            "🌊 💧 🌊 🐋 🌊",
+            "💧 🌊 🐋 🌊 💧",
+            "🌊 🐋 ✨ 🌊 💧"
+        ]
     },
 
     volcano: {
-        name: "🌋 Sopka",
-        colors: [0xff2200, 0xff6600, 0xffcc00],
-        emojis: ["🌋", "🔥", "💥", "🔥", "✨"]
+        label: "Sopka",
+        emoji: "🌋",
+        colors: [0xFF2200, 0xFF6600, 0xFFCC00],
+        effects: [
+            "🌋 🔥 💥 🔥 🌋",
+            "🔥 🌋 ✨ 🌋 🔥",
+            "💥 🔥 🌋 🔥 💥"
+        ]
     },
 
     tornado: {
-        name: "🌪️ Tornádo",
+        label: "Tornado",
+        emoji: "🌪️",
         colors: [0x555555, 0x888888, 0x222222],
-        emojis: ["🌪️", "💨", "🌪️", "💨", "✨"]
+        effects: [
+            "💨 🌪️ 💨 🌪️ 💨",
+            "🌪️ 💨 ✨ 💨 🌪️",
+            "💨 ✨ 🌪️ ✨ 💨"
+        ]
     },
 
     rain: {
-        name: "🌧️ Dážď",
-        colors: [0x3366cc, 0x6699ff, 0x99ccff],
-        emojis: ["🌧️", "💧", "☔", "💧", "✨"]
+        label: "Dazd",
+        emoji: "🌧️",
+        colors: [0x3366CC, 0x6699FF, 0x99CCFF],
+        effects: [
+            "🌧️ 💧 ☔ 💧 🌧️",
+            "💧 🌧️ 💧 ☔ 💧",
+            "☔ 💧 🌧️ 💧 ☔"
+        ]
     },
 
     rainbow: {
-        name: "🌈 Dúha",
-        colors: [0xff0000, 0xff9900, 0x00ccff],
-        emojis: ["🌈", "✨", "🌈", "✨", "💫"]
+        label: "Duzha",
+        emoji: "🌈",
+        colors: [0xFF0000, 0xFF9900, 0x00CCFF],
+        effects: [
+            "🌈 ✨ 🌈 ✨ 🌈",
+            "✨ 🌈 💫 🌈 ✨",
+            "🌈 💫 ✨ 💫 🌈"
+        ]
     },
 
     moon: {
-        name: "🌙 Mesačná noc",
-        colors: [0x111133, 0x333366, 0x6666aa],
-        emojis: ["🌙", "⭐", "🌌", "⭐", "✨"]
+        label: "Mesacna noc",
+        emoji: "🌙",
+        colors: [0x111133, 0x333366, 0x6666AA],
+        effects: [
+            "🌙 ⭐ 🌌 ⭐ 🌙",
+            "⭐ 🌙 ✨ 🌌 ⭐",
+            "🌌 ⭐ 🌙 ⭐ 🌌"
+        ]
     },
 
     stars: {
-        name: "⭐ Hviezdy",
+        label: "Hviezdy",
+        emoji: "⭐",
         colors: [0x111111, 0x333366, 0x663399],
-        emojis: ["⭐", "✨", "🌟", "💫", "⭐"]
+        effects: [
+            "⭐ ✨ 🌟 💫 ⭐",
+            "✨ 🌟 ⭐ 🌟 ✨",
+            "💫 ⭐ ✨ ⭐ 💫"
+        ]
     },
 
     meteor: {
-        name: "☄️ Meteority",
-        colors: [0x551100, 0xff6600, 0xffcc00],
-        emojis: ["☄️", "🔥", "💥", "☄️", "✨"]
+        label: "Meteority",
+        emoji: "☄️",
+        colors: [0x551100, 0xFF6600, 0xFFCC00],
+        effects: [
+            "☄️ 🔥 ✨ 🔥 ☄️",
+            "🔥 ☄️ 💥 ☄️ 🔥",
+            "✨ 🔥 ☄️ 🔥 ✨"
+        ]
     },
 
     galaxy: {
-        name: "💜 Galaxy",
-        colors: [0x240046, 0x7209b7, 0x4361ee],
-        emojis: ["💜", "🌌", "✨", "💫", "🌟"]
+        label: "Galaxy",
+        emoji: "💜",
+        colors: [0x240046, 0x7209B7, 0x4361EE],
+        effects: [
+            "💜 🌌 ✨ 💫 💜",
+            "🌌 💫 💜 ✨ 🌌",
+            "✨ 💜 🌌 💜 ✨"
+        ]
     },
 
     crystal: {
-        name: "💎 Crystal",
-        colors: [0x00ffff, 0x00aaff, 0x9966ff],
-        emojis: ["💎", "🔷", "💠", "💎", "✨"]
+        label: "Crystal",
+        emoji: "💎",
+        colors: [0x00FFFF, 0x00AAFF, 0x9966FF],
+        effects: [
+            "💎 🔷 💠 🔷 💎",
+            "🔷 💠 💎 💠 🔷",
+            "💠 💎 🔷 💎 💠"
+        ]
     },
 
     forest: {
-        name: "🌲 Les",
-        colors: [0x14532d, 0x16a34a, 0x65a30d],
-        emojis: ["🌲", "🍃", "🌿", "🌲", "✨"]
+        label: "Les",
+        emoji: "🌲",
+        colors: [0x14532D, 0x16A34A, 0x65A30D],
+        effects: [
+            "🌲 🍃 🌿 🍃 🌲",
+            "🍃 🌲 ✨ 🌲 🍃",
+            "🌿 🍃 🌲 🍃 🌿"
+        ]
     },
 
     autumn: {
-        name: "🍂 Jeseň",
-        colors: [0xff6600, 0xcc3300, 0xffcc33],
-        emojis: ["🍂", "🍁", "🍂", "🍁", "✨"]
+        label: "Jesen",
+        emoji: "🍂",
+        colors: [0xFF6600, 0xCC3300, 0xFFCC33],
+        effects: [
+            "🍂 🍁 🍂 🍁 🍂",
+            "🍁 🍂 ✨ 🍂 🍁",
+            "🍂 ✨ 🍁 ✨ 🍂"
+        ]
     },
 
     spring: {
-        name: "🌸 Jar",
-        colors: [0xff99cc, 0xff66aa, 0x99ffcc],
-        emojis: ["🌸", "🌺", "🌷", "🌸", "✨"]
+        label: "Jar",
+        emoji: "🌸",
+        colors: [0xFF99CC, 0xFF66AA, 0x99FFCC],
+        effects: [
+            "🌸 🌺 🌷 🌺 🌸",
+            "🌺 🌸 ✨ 🌸 🌺",
+            "🌷 ✨ 🌸 ✨ 🌷"
+        ]
     },
 
     halloween: {
-        name: "🎃 Halloween",
-        colors: [0xff6600, 0x663399, 0x111111],
-        emojis: ["🎃", "👻", "🦇", "🎃", "💀"]
+        label: "Halloween",
+        emoji: "🎃",
+        colors: [0xFF6600, 0x663399, 0x111111],
+        effects: [
+            "🎃 👻 🦇 👻 🎃",
+            "👻 🎃 💀 🎃 👻",
+            "🦇 👻 🎃 👻 🦇"
+        ]
     },
 
     christmas: {
-        name: "🎄 Vianoce",
-        colors: [0xff0000, 0x00aa44, 0xffffff],
-        emojis: ["🎄", "🎅", "❄️", "🎁", "✨"]
+        label: "Vianoce",
+        emoji: "🎄",
+        colors: [0xFF0000, 0x00AA44, 0xFFFFFF],
+        effects: [
+            "🎄 🎁 ❄️ 🎅 🎄",
+            "❄️ 🎄 ✨ 🎄 ❄️",
+            "🎅 ❄️ 🎁 ❄️ 🎅"
+        ]
     },
 
     fireworks: {
-        name: "🎆 Ohňostroj",
-        colors: [0xff00ff, 0x00ffff, 0xffff00],
-        emojis: ["🎆", "🎇", "✨", "💥", "🎆"]
+        label: "Ohnostroj",
+        emoji: "🎆",
+        colors: [0xFF00FF, 0x00FFFF, 0xFFFF00],
+        effects: [
+            "🎆 ✨ 🎇 ✨ 🎆",
+            "🎇 💥 🎆 💥 🎇",
+            "✨ 🎆 💫 🎆 ✨"
+        ]
     },
 
     sun: {
-        name: "☀️ Slnko",
-        colors: [0xffcc00, 0xff8800, 0xffff66],
-        emojis: ["☀️", "🌞", "🔥", "☀️", "✨"]
+        label: "Slnko",
+        emoji: "☀️",
+        colors: [0xFFCC00, 0xFF8800, 0xFFFF66],
+        effects: [
+            "☀️ ✨ 🌞 ✨ ☀️",
+            "🌞 ☀️ 🔥 ☀️ 🌞",
+            "✨ ☀️ 🌞 ☀️ ✨"
+        ]
     },
 
     eclipse: {
-        name: "🌑 Zatmenie",
+        label: "Zatmenie",
+        emoji: "🌑",
         colors: [0x111111, 0x333333, 0x663300],
-        emojis: ["🌑", "🌘", "🌒", "🌑", "✨"]
+        effects: [
+            "🌑 🌘 🌒 🌘 🌑",
+            "🌘 🌑 ✨ 🌑 🌘",
+            "🌒 🌘 🌑 🌘 🌒"
+        ]
     },
 
     desert: {
-        name: "🏜️ Púšť",
-        colors: [0xcc6600, 0xffaa33, 0xffdd88],
-        emojis: ["🏜️", "🌵", "☀️", "🌵", "✨"]
+        label: "Pust",
+        emoji: "🏜️",
+        colors: [0xCC6600, 0xFFAA33, 0xFFDD88],
+        effects: [
+            "🏜️ 🌵 ☀️ 🌵 🏜️",
+            "🌵 🏜️ ✨ 🏜️ 🌵",
+            "☀️ 🌵 🏜️ 🌵 ☀️"
+        ]
     },
 
     tropical: {
-        name: "🌺 Tropical",
-        colors: [0x00cc88, 0x00ccff, 0xff66aa],
-        emojis: ["🌺", "🌴", "🦜", "🌊", "✨"]
+        label: "Tropical",
+        emoji: "🌺",
+        colors: [0x00CC88, 0x00CCFF, 0xFF66AA],
+        effects: [
+            "🌺 🌴 🦜 🌊 🌺",
+            "🌴 🌺 ✨ 🌺 🌴",
+            "🦜 🌊 🌺 🌊 🦜"
+        ]
     }
-
 };
 
 // ======================================================
@@ -232,156 +384,122 @@ const themes = {
 
 const commands = [
 
-    // --------------------------------------------------
-    // ADD RANK
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("addrank")
         .setDescription("Pridá rank test")
-
-        .addUserOption(o =>
-            o.setName("hráč")
+        .addUserOption(option =>
+            option
+                .setName("hrac")
                 .setDescription("Hráč")
                 .setRequired(true)
         )
-
-        .addStringOption(o =>
-            o.setName("gamemode")
+        .addStringOption(option =>
+            option
+                .setName("gamemode")
                 .setDescription("Gamemode - voľný text")
                 .setRequired(true)
         )
-
-        .addStringOption(o =>
-            o.setName("rank")
-                .setDescription("Rank")
+        .addStringOption(option =>
+            option
+                .setName("rank")
+                .setDescription("Rank hráča")
                 .setRequired(true)
-                .addChoices(...ranks)
+                .addChoices(...rankChoices)
         )
-
-        .addUserOption(o =>
-            o.setName("tester")
-                .setDescription("Tester")
+        .addUserOption(option =>
+            option
+                .setName("tester")
+                .setDescription("Kto hráča testoval")
                 .setRequired(false)
         )
-
-        .addStringOption(o =>
-            o.setName("poznámka")
-                .setDescription("Poznámka")
+        .addStringOption(option =>
+            option
+                .setName("poznamka")
+                .setDescription("Voliteľná poznámka")
                 .setRequired(false)
         )
-
-        .addStringOption(o =>
-            o.setName("dôkaz")
-                .setDescription("Link na dôkaz")
-                .setRequired(false)
-        )
-
-        .addIntegerOption(o =>
-            o.setName("hodnotenie")
-                .setDescription("Hodnotenie 1-10")
-                .setMinValue(1)
-                .setMaxValue(10)
-                .setRequired(false)
-        )
-
-        .addStringOption(o =>
-            o.setName("status")
-                .setDescription("Zmena ranku")
+        .addStringOption(option =>
+            option
+                .setName("status")
+                .setDescription("Čo sa stalo s rankom")
                 .setRequired(false)
                 .addChoices(
                     {
-                        name: "🟢 Rank Up",
+                        name: "🟢 Rank UP",
                         value: "up"
                     },
                     {
-                        name: "🔴 Rank Down",
+                        name: "🔴 Rank DOWN",
                         value: "down"
                     },
                     {
-                        name: "⚪ Same Rank",
+                        name: "⚪ Rovnaký rank",
                         value: "same"
                     }
                 )
         )
-
-        .addStringOption(o =>
-            o.setName("predosly_rank")
+        .addStringOption(option =>
+            option
+                .setName("predosly_rank")
                 .setDescription("Predošlý rank")
                 .setRequired(false)
-                .addChoices(...ranks)
+                .addChoices(...rankChoices)
+        )
+        .addIntegerOption(option =>
+            option
+                .setName("hodnotenie")
+                .setDescription("Hodnotenie testu 1-10")
+                .setMinValue(1)
+                .setMaxValue(10)
+                .setRequired(false)
+        )
+        .addStringOption(option =>
+            option
+                .setName("dokaz")
+                .setDescription("Odkaz na dôkaz")
+                .setRequired(false)
         ),
-
-    // --------------------------------------------------
-    // EMBED
-    // --------------------------------------------------
 
     new SlashCommandBuilder()
         .setName("embed")
-        .setDescription("Vytvorí animovaný Discord embed")
-
-        .addUserOption(o =>
-            o.setName("hráč")
-                .setDescription("Koho má embed označiť")
-                .setRequired(false)
-        ),
-
-    // --------------------------------------------------
-    // 8BALL
-    // --------------------------------------------------
+        .setDescription("Vytvorí tematický Discord embed"),
 
     new SlashCommandBuilder()
         .setName("8ball")
-        .setDescription("Opýtaj sa magickej 8-ball")
-
-        .addStringOption(o =>
-            o.setName("otázka")
+        .setDescription("Magická 8-ball")
+        .addStringOption(option =>
+            option
+                .setName("otazka")
                 .setDescription("Tvoja otázka")
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
-    // COINFLIP
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("coinflip")
-        .setDescription("Hodí mincou"),
-
-    // --------------------------------------------------
-    // DICE
-    // --------------------------------------------------
+        .setDescription("Hod mincou"),
 
     new SlashCommandBuilder()
         .setName("dice")
-        .setDescription("Hodí kockou"),
-
-    // --------------------------------------------------
-    // ROLL
-    // --------------------------------------------------
+        .setDescription("Hod kockou"),
 
     new SlashCommandBuilder()
         .setName("roll")
         .setDescription("Náhodné číslo")
-
-        .addIntegerOption(o =>
-            o.setName("maximum")
+        .addIntegerOption(option =>
+            option
+                .setName("maximum")
                 .setDescription("Maximum")
                 .setMinValue(2)
                 .setMaxValue(1000000)
                 .setRequired(false)
         ),
 
-    // --------------------------------------------------
-    // RPS
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("rps")
         .setDescription("Kameň papier nožnice")
-
-        .addStringOption(o =>
-            o.setName("voľba")
+        .addStringOption(option =>
+            option
+                .setName("volba")
                 .setDescription("Tvoja voľba")
                 .setRequired(true)
                 .addChoices(
@@ -400,82 +518,60 @@ const commands = [
                 )
         ),
 
-    // --------------------------------------------------
-    // SLOTS
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("slots")
         .setDescription("Zahraj si sloty"),
 
-    // --------------------------------------------------
-    // CHOOSE
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("choose")
-        .setDescription("Vyberie jednu možnosť")
-
-        .addStringOption(o =>
-            o.setName("možnosti")
+        .setDescription("Vyberie náhodnú možnosť")
+        .addStringOption(option =>
+            option
+                .setName("moznosti")
                 .setDescription("Možnosti oddelené čiarkou")
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
-    // RATE
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("rate")
-        .setDescription("Náhodné hodnotenie")
-
-        .addStringOption(o =>
-            o.setName("čo")
+        .setDescription("Ohodnotí niečo")
+        .addStringOption(option =>
+            option
+                .setName("co")
                 .setDescription("Čo má bot hodnotiť?")
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
-    // SHIP
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("ship")
         .setDescription("Kompatibilita dvoch hráčov")
-
-        .addUserOption(o =>
-            o.setName("hráč1")
+        .addUserOption(option =>
+            option
+                .setName("hrac1")
                 .setDescription("Prvý hráč")
                 .setRequired(true)
         )
-
-        .addUserOption(o =>
-            o.setName("hráč2")
+        .addUserOption(option =>
+            option
+                .setName("hrac2")
                 .setDescription("Druhý hráč")
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
-    // HELP
-    // --------------------------------------------------
-
     new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Zobrazí všetky príkazy")
+        .setDescription("Zobrazí pomoc")
 
-].map(c => c.toJSON());
+].map(command => command.toJSON());
 
 // ======================================================
-// REGISTER COMMANDS
+// REGISTRÁCIA PRÍKAZOV
 // ======================================================
 
 async function registerCommands() {
-
-    console.log("Registrujem slash príkazy...");
+    console.log("Registrujem slash prikazy...");
 
     try {
-
         const rest = new REST({
             version: "10"
         }).setToken(TOKEN);
@@ -487,25 +583,17 @@ async function registerCommands() {
             }
         );
 
-        console.log(
-            "Slash príkazy boli úspešne zaregistrované!"
-        );
-
+        console.log("Slash prikazy boli uspesne zaregistrovane!");
     } catch (error) {
-
-        console.error(
-            "Chyba pri registrácii:",
-            error
-        );
+        console.error("Chyba pri registracii prikazov:", error);
     }
 }
 
 // ======================================================
-// RANK EDITOR
+// KONTROLA ROLE RANK EDITOR
 // ======================================================
 
 function isRankEditor(interaction) {
-
     if (!interaction.guild) {
         return false;
     }
@@ -520,11 +608,10 @@ function isRankEditor(interaction) {
 }
 
 // ======================================================
-// STATUS
+// RANK STATUS
 // ======================================================
 
-function statusText(status) {
-
+function getStatus(status) {
     if (status === "up") {
         return "🟢 **RANK UP**";
     }
@@ -537,17 +624,11 @@ function statusText(status) {
 }
 
 // ======================================================
-// RANK EMBED
+// ADD RANK EMBED
 // ======================================================
 
 function createRankEmbed(interaction) {
-
-    const player =
-        interaction.options.getUser("hráč");
-
-    const tester =
-        interaction.options.getUser("tester")
-        || interaction.user;
+    const player = interaction.options.getUser("hrac");
 
     const gamemode =
         interaction.options.getString("gamemode");
@@ -555,98 +636,90 @@ function createRankEmbed(interaction) {
     const rank =
         interaction.options.getString("rank");
 
-    const note =
-        interaction.options.getString("poznámka")
-        || "Bez poznámky";
+    const tester =
+        interaction.options.getUser("tester") ||
+        interaction.user;
 
-    const evidence =
-        interaction.options.getString("dôkaz");
+    const note =
+        interaction.options.getString("poznamka") ||
+        "Bez poznámky.";
+
+    const status =
+        interaction.options.getString("status") ||
+        "same";
+
+    const previousRank =
+        interaction.options.getString("predosly_rank") ||
+        "Neuvedené";
 
     const rating =
         interaction.options.getInteger("hodnotenie");
 
-    const status =
-        interaction.options.getString("status")
-        || "same";
+    const evidence =
+        interaction.options.getString("dokaz");
 
-    const previousRank =
-        interaction.options.getString("predosly_rank")
-        || "Neuvedené";
+    let color = 0x5865F2;
 
-    const embed =
-        new EmbedBuilder()
+    if (status === "up") {
+        color = 0x57F287;
+    }
 
-            .setColor(
-                status === "up"
-                    ? 0x57F287
-                    : status === "down"
-                        ? 0xED4245
-                        : 0x5865F2
-            )
+    if (status === "down") {
+        color = 0xED4245;
+    }
 
-            .setTitle("🏆 RANK TEST")
-
-            .setDescription(
-                `## 👤 ${player.username}\n` +
-                `> ${statusText(status)}`
-            )
-
-            .setThumbnail(
-                player.displayAvatarURL()
-            )
-
-            .addFields(
-
-                {
-                    name: "🎮 Gamemode",
-                    value: `\`${gamemode}\``,
-                    inline: true
-                },
-
-                {
-                    name: "🏆 Rank",
-                    value: `**${rank}**`,
-                    inline: true
-                },
-
-                {
-                    name: "🔄 Predošlý rank",
-                    value: previousRank,
-                    inline: true
-                },
-
-                {
-                    name: "🧪 Tester",
-                    value: `<@${tester.id}>`,
-                    inline: true
-                },
-
-                {
-                    name: "⭐ Hodnotenie",
-                    value:
-                        rating
-                            ? `${rating}/10`
-                            : "Neuvedené",
-                    inline: true
-                },
-
-                {
-                    name: "📝 Poznámka",
-                    value: note,
-                    inline: false
-                }
-
-            )
-
-            .setFooter({
-                text:
-                    "Minecraft Rank System • Rank Editor"
+    const embed = new EmbedBuilder()
+        .setColor(color)
+        .setTitle("🏆 RANK TEST DOKONČENÝ")
+        .setDescription(
+            `## 👤 ${player.username}\n` +
+            `${getStatus(status)}`
+        )
+        .setThumbnail(
+            player.displayAvatarURL({
+                size: 256
             })
-
-            .setTimestamp();
+        )
+        .addFields(
+            {
+                name: "🎮 Gamemode",
+                value: `\`${gamemode}\``,
+                inline: true
+            },
+            {
+                name: "🏆 Rank",
+                value: `**${rank}**`,
+                inline: true
+            },
+            {
+                name: "🔄 Predošlý rank",
+                value: previousRank,
+                inline: true
+            },
+            {
+                name: "🧪 Tester",
+                value: `<@${tester.id}>`,
+                inline: true
+            },
+            {
+                name: "⭐ Hodnotenie",
+                value: rating
+                    ? `${rating}/10`
+                    : "Neuvedené",
+                inline: true
+            },
+            {
+                name: "📝 Poznámka",
+                value: note,
+                inline: false
+            }
+        )
+        .setFooter({
+            text: "Minecraft Rank System • Rank Editor"
+        })
+        .setTimestamp();
 
     if (evidence) {
-
         embed.addFields({
             name: "🔗 Dôkaz",
             value: evidence
@@ -657,89 +730,67 @@ function createRankEmbed(interaction) {
 }
 
 // ======================================================
-// EMBED SELECT MENU
+// EMBED MENU
 // ======================================================
 
 function createThemeMenu() {
+    const options = Object.entries(themes).map(
+        ([key, theme]) => {
+            return {
+                label: theme.label,
+                value: key,
+                emoji: theme.emoji
+            };
+        }
+    );
 
-    const menu =
-        new StringSelectMenuBuilder()
-            .setCustomId("embed_theme")
-            .setPlaceholder(
-                "🎨 Vyber animovanú tému..."
-            )
-            .addOptions(
-                Object.entries(themes)
-                    .map(([id, theme]) => ({
-                        label:
-                            theme.name
-                                .replace(/^.\s/, ""),
-                        value: id,
-                        emoji:
-                            theme.name.substring(0, 2)
-                    }))
-            );
+    const menu = new StringSelectMenuBuilder()
+        .setCustomId("embed_theme")
+        .setPlaceholder("🎨 Vyber si tému...")
+        .addOptions(options);
 
     return new ActionRowBuilder()
         .addComponents(menu);
 }
 
 // ======================================================
-// ANIMOVANÝ EMBED
+// VYTVORENIE TEMATICKÉHO EMBEDU
 // ======================================================
 
-function createAnimatedEmbed(
-    theme,
+function createThemeEmbed(
+    themeKey,
     title,
     description,
     footer,
-    mention,
     frame
 ) {
-
-    const themeData =
-        themes[theme];
+    const theme = themes[themeKey];
 
     const color =
-        themeData.colors[
-            frame %
-            themeData.colors.length
+        theme.colors[
+            frame % theme.colors.length
         ];
 
-    const emoji =
-        themeData.emojis[
-            frame %
-            themeData.emojis.length
+    const effect =
+        theme.effects[
+            frame % theme.effects.length
         ];
-
-    const background =
-        `${emoji} ${emoji} ${emoji} ${emoji} ${emoji}\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n`;
 
     return new EmbedBuilder()
-
         .setColor(color)
-
         .setTitle(
-            `${emoji} ${title}`
+            `${theme.emoji} ${title}`
         )
-
         .setDescription(
-            background +
-            (mention
-                ? `### 👤 ${mention}\n\n`
-                : "") +
-            description +
-            `\n\n━━━━━━━━━━━━━━━━━━━━\n` +
-            `${emoji} ${themeData.name} ${emoji}`
+            `${effect}\n\n` +
+            `${description}\n\n` +
+            `${effect}`
         )
-
         .setFooter({
             text:
                 footer ||
-                `Animated Embed • ${themeData.name}`
+                `${theme.label} • Animated Embed`
         })
-
         .setTimestamp();
 }
 
@@ -755,9 +806,7 @@ client.on(
         // SLASH COMMANDS
         // ==================================================
 
-        if (
-            interaction.isChatInputCommand()
-        ) {
+        if (interaction.isChatInputCommand()) {
 
             try {
 
@@ -766,29 +815,22 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "addrank"
+                    interaction.commandName === "addrank"
                 ) {
-
-                    if (
-                        !isRankEditor(interaction)
-                    ) {
-
+                    if (!isRankEditor(interaction)) {
                         return interaction.reply({
                             content:
-                                "❌ Tento príkaz môže používať iba **Rank editor**.",
+                                "❌ Tento príkaz môže používať iba rola **Rank editor**.",
                             ephemeral: true
                         });
                     }
 
                     const embed =
-                        createRankEmbed(
-                            interaction
-                        );
+                        createRankEmbed(interaction);
 
                     return interaction.reply({
                         content:
-                            "🏆 **Nový rank test**",
+                            "🏆 **Rank bol úspešne pridaný!**",
                         embeds: [embed]
                     });
                 }
@@ -798,19 +840,15 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "embed"
+                    interaction.commandName === "embed"
                 ) {
-
                     return interaction.reply({
-
                         content:
-                            "🎨 **Embed Creator**\n\nVyber si tému pre svoj embed:",
-
+                            "🎨 **Embed Creator**\n\n" +
+                            "Vyber si tému pre svoj embed:",
                         components: [
                             createThemeMenu()
                         ],
-
                         ephemeral: true
                     });
                 }
@@ -820,65 +858,51 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "8ball"
+                    interaction.commandName === "8ball"
                 ) {
-
                     const answers = [
-
                         "Áno! 🟢",
                         "Určite! 🟢",
                         "Vyzerá to dobre! 🟢",
                         "Skôr áno. 🟢",
-                        "Neviem... 🤔",
                         "Možno. 🤔",
+                        "Neviem... 🤔",
                         "Skôr nie. 🔴",
                         "Nie. 🔴",
                         "Určite nie. 🔴",
                         "Osud zatiaľ mlčí... 🌌"
-
                     ];
+
+                    const question =
+                        interaction.options.getString(
+                            "otazka"
+                        );
 
                     const answer =
                         answers[
                             Math.floor(
-                                Math.random()
-                                * answers.length
+                                Math.random() *
+                                answers.length
                             )
                         ];
 
-                    const question =
-                        interaction.options.getString(
-                            "otázka"
-                        );
-
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0x5865F2)
-
                                 .setTitle("🎱 Magic 8-Ball")
-
                                 .addFields(
-
                                     {
                                         name: "❓ Otázka",
                                         value: question
                                     },
-
                                     {
                                         name: "🔮 Odpoveď",
                                         value:
                                             `**${answer}**`
                                     }
-
                                 )
-
                                 .setTimestamp()
-
                         ]
                     });
                 }
@@ -888,28 +912,20 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "coinflip"
+                    interaction.commandName === "coinflip"
                 ) {
-
                     const result =
                         Math.random() < 0.5
-                            ? "🪙 **HLAVA**"
-                            : "🪙 **ZNAK**";
+                            ? "HLAVA"
+                            : "ZNAK";
 
                     return interaction.reply({
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0xF1C40F)
-
-                                .setTitle(
-                                    "🪙 Hod mincou"
-                                )
-
+                                .setTitle("🪙 Hod mincou")
                                 .setDescription(
-                                    `# ${result}`
+                                    `# 🪙 ${result}`
                                 )
                         ]
                     });
@@ -920,31 +936,21 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "dice"
+                    interaction.commandName === "dice"
                 ) {
-
                     const result =
                         Math.floor(
                             Math.random() * 6
                         ) + 1;
 
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0x95A5A6)
-
-                                .setTitle(
-                                    "🎲 Hod kockou"
-                                )
-
+                                .setTitle("🎲 Hod kockou")
                                 .setDescription(
                                     `# ${result}`
                                 )
-
                         ]
                     });
                 }
@@ -954,10 +960,8 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "roll"
+                    interaction.commandName === "roll"
                 ) {
-
                     const max =
                         interaction.options.getInteger(
                             "maximum"
@@ -970,20 +974,13 @@ client.on(
 
                     return interaction.reply({
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0x5865F2)
-
-                                .setTitle(
-                                    "🎲 Random Roll"
-                                )
-
+                                .setTitle("🎲 Random Roll")
                                 .setDescription(
                                     `# ${result}\n\n` +
                                     `Rozsah: **1–${max}**`
                                 )
-
                         ]
                     });
                 }
@@ -993,13 +990,11 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "rps"
+                    interaction.commandName === "rps"
                 ) {
-
                     const player =
                         interaction.options.getString(
-                            "voľba"
+                            "volba"
                         );
 
                     const choices = [
@@ -1011,8 +1006,8 @@ client.on(
                     const bot =
                         choices[
                             Math.floor(
-                                Math.random()
-                                * choices.length
+                                Math.random() *
+                                choices.length
                             )
                         ];
 
@@ -1026,71 +1021,42 @@ client.on(
 
                     if (player === bot) {
                         result = "🤝 Remíza!";
-                    }
-
-                    else if (
-
+                    } else if (
                         (player === "rock" &&
                             bot === "scissors") ||
-
                         (player === "paper" &&
                             bot === "rock") ||
-
                         (player === "scissors" &&
                             bot === "paper")
-
                     ) {
-
                         result = "🏆 Vyhral si!";
-
-                    }
-
-                    else {
-
-                        result = "💀 Vyhral bot!";
-
+                    } else {
+                        result = "🤖 Vyhral bot!";
                     }
 
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0x5865F2)
-
                                 .setTitle(
                                     "✊ Kameň Papier Nožnice"
                                 )
-
                                 .addFields(
-
                                     {
-                                        name:
-                                            "👤 Ty",
-                                        value:
-                                            names[player],
+                                        name: "👤 Ty",
+                                        value: names[player],
                                         inline: true
                                     },
-
                                     {
-                                        name:
-                                            "🤖 Bot",
-                                        value:
-                                            names[bot],
+                                        name: "🤖 Bot",
+                                        value: names[bot],
                                         inline: true
                                     },
-
                                     {
-                                        name:
-                                            "🏆 Výsledok",
-                                        value:
-                                            result,
-                                        inline: false
+                                        name: "🏆 Výsledok",
+                                        value: result
                                     }
-
                                 )
-
                         ]
                     });
                 }
@@ -1100,10 +1066,8 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "slots"
+                    interaction.commandName === "slots"
                 ) {
-
                     const symbols = [
                         "🍒",
                         "🍋",
@@ -1116,24 +1080,24 @@ client.on(
                     const a =
                         symbols[
                             Math.floor(
-                                Math.random()
-                                * symbols.length
+                                Math.random() *
+                                symbols.length
                             )
                         ];
 
                     const b =
                         symbols[
                             Math.floor(
-                                Math.random()
-                                * symbols.length
+                                Math.random() *
+                                symbols.length
                             )
                         ];
 
                     const c =
                         symbols[
                             Math.floor(
-                                Math.random()
-                                * symbols.length
+                                Math.random() *
+                                symbols.length
                             )
                         ];
 
@@ -1141,21 +1105,14 @@ client.on(
                         a === b && b === c;
 
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(
                                     win
                                         ? 0x57F287
                                         : 0xED4245
                                 )
-
-                                .setTitle(
-                                    "🎰 SLOTS"
-                                )
-
+                                .setTitle("🎰 SLOTS")
                                 .setDescription(
                                     `# ${a} │ ${b} │ ${c}\n\n` +
                                     (
@@ -1164,7 +1121,6 @@ client.on(
                                             : "😢 Skús znova!"
                                     )
                                 )
-
                         ]
                     });
                 }
@@ -1174,30 +1130,23 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "choose"
+                    interaction.commandName === "choose"
                 ) {
-
                     const input =
                         interaction.options.getString(
-                            "možnosti"
+                            "moznosti"
                         );
 
                     const options =
                         input
                             .split(",")
-                            .map(x => x.trim())
+                            .map(item => item.trim())
                             .filter(Boolean);
 
-                    if (
-                        options.length < 2
-                    ) {
-
+                    if (options.length < 2) {
                         return interaction.reply({
-
                             content:
-                                "❌ Napíš aspoň 2 možnosti oddelené čiarkou.",
-
+                                "❌ Zadaj aspoň 2 možnosti oddelené čiarkou.",
                             ephemeral: true
                         });
                     }
@@ -1205,27 +1154,21 @@ client.on(
                     const chosen =
                         options[
                             Math.floor(
-                                Math.random()
-                                * options.length
+                                Math.random() *
+                                options.length
                             )
                         ];
 
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0x5865F2)
-
                                 .setTitle(
                                     "🤔 Random Choice"
                                 )
-
                                 .setDescription(
                                     `### 🎯 Vybral som:\n# ${chosen}`
                                 )
-
                         ]
                     });
                 }
@@ -1235,13 +1178,11 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "rate"
+                    interaction.commandName === "rate"
                 ) {
-
                     const what =
                         interaction.options.getString(
-                            "čo"
+                            "co"
                         );
 
                     const rating =
@@ -1249,28 +1190,22 @@ client.on(
                             Math.random() * 101
                         );
 
+                    let color = 0xED4245;
+
+                    if (rating >= 80) {
+                        color = 0x57F287;
+                    } else if (rating >= 50) {
+                        color = 0xFEE75C;
+                    }
+
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
-                                .setColor(
-                                    rating >= 80
-                                        ? 0x57F287
-                                        : rating >= 50
-                                            ? 0xFEE75C
-                                            : 0xED4245
-                                )
-
-                                .setTitle(
-                                    "⭐ Hodnotenie"
-                                )
-
+                                .setColor(color)
+                                .setTitle("⭐ Hodnotenie")
                                 .setDescription(
                                     `**${what}**\n\n# ${rating}%`
                                 )
-
                         ]
                     });
                 }
@@ -1280,18 +1215,16 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "ship"
+                    interaction.commandName === "ship"
                 ) {
-
-                    const a =
+                    const player1 =
                         interaction.options.getUser(
-                            "hráč1"
+                            "hrac1"
                         );
 
-                    const b =
+                    const player2 =
                         interaction.options.getUser(
-                            "hráč2"
+                            "hrac2"
                         );
 
                     const percent =
@@ -1310,36 +1243,30 @@ client.on(
                             10 - hearts
                         );
 
+                    let message =
+                        "💀 To bude ťažké...";
+
+                    if (percent >= 80) {
+                        message =
+                            "🔥 Dokonalý match!";
+                    } else if (percent >= 50) {
+                        message =
+                            "💕 Celkom dobré!";
+                    }
+
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0xFF69B4)
-
                                 .setTitle(
                                     "❤️ Love Calculator"
                                 )
-
                                 .setDescription(
-
-                                    `<@${a.id}> ❤️ <@${b.id}>\n\n` +
-
+                                    `<@${player1.id}> ❤️ <@${player2.id}>\n\n` +
                                     `# ${percent}%\n` +
-
                                     `${bar}\n\n` +
-
-                                    (
-                                        percent >= 80
-                                            ? "🔥 Dokonalý match!"
-                                            : percent >= 50
-                                                ? "💕 Celkom dobré!"
-                                                : "💀 Toto bude ťažké..."
-                                    )
-
+                                    message
                                 )
-
                         ]
                     });
                 }
@@ -1349,45 +1276,31 @@ client.on(
                 // ==========================================
 
                 if (
-                    interaction.commandName ===
-                    "help"
+                    interaction.commandName === "help"
                 ) {
-
                     return interaction.reply({
-
                         embeds: [
-
                             new EmbedBuilder()
-
                                 .setColor(0x5865F2)
-
                                 .setTitle(
                                     "🤖 CZ/SK/EN Bot"
                                 )
-
                                 .setDescription(
-                                    "Všetky dostupné príkazy:"
+                                    "Dostupné príkazy:"
                                 )
-
                                 .addFields(
-
                                     {
-                                        name:
-                                            "🏆 Rank System",
+                                        name: "🏆 Rank System",
                                         value:
-                                            "`/addrank` — pridá rank test"
+                                            "`/addrank` — Rank Editor"
                                     },
-
                                     {
-                                        name:
-                                            "🎨 Embed Creator",
+                                        name: "🎨 Embed Creator",
                                         value:
-                                            "`/embed` — vytvorí animovaný embed"
+                                            "`/embed` — tematické embedy"
                                     },
-
                                     {
-                                        name:
-                                            "🎮 Hry",
+                                        name: "🎮 Hry",
                                         value:
                                             "`/8ball`\n" +
                                             "`/coinflip`\n" +
@@ -1397,31 +1310,24 @@ client.on(
                                             "`/slots`\n" +
                                             "`/choose`"
                                     },
-
                                     {
-                                        name:
-                                            "❤️ Fun",
+                                        name: "❤️ Fun",
                                         value:
                                             "`/ship`\n" +
                                             "`/rate`"
                                     }
-
                                 )
-
                                 .setFooter({
                                     text:
                                         "Bez databázy • Bez storage"
                                 })
-
                         ]
                     });
                 }
-            }
 
-            catch (error) {
-
+            } catch (error) {
                 console.error(
-                    "Interaction error:",
+                    "Chyba interaction:",
                     error
                 );
 
@@ -1429,31 +1335,28 @@ client.on(
                     interaction.replied ||
                     interaction.deferred
                 ) {
-
                     return interaction.followUp({
                         content:
-                            "❌ Nastala chyba.",
+                            "❌ Nastala chyba pri vykonávaní príkazu.",
                         ephemeral: true
                     });
-
                 }
 
                 return interaction.reply({
                     content:
-                        "❌ Nastala chyba.",
+                        "❌ Nastala chyba pri vykonávaní príkazu.",
                     ephemeral: true
                 });
             }
         }
 
         // ==================================================
-        // SELECT MENU
+        // VÝBER TÉMY
         // ==================================================
 
         if (
             interaction.isStringSelectMenu()
         ) {
-
             if (
                 interaction.customId !==
                 "embed_theme"
@@ -1461,22 +1364,22 @@ client.on(
                 return;
             }
 
-            const theme =
+            const themeKey =
                 interaction.values[0];
 
-            const themeData =
-                themes[theme];
+            const theme =
+                themes[themeKey];
 
             const modal =
                 new ModalBuilder()
                     .setCustomId(
-                        `embed_modal_${theme}`
+                        `embed_modal_${themeKey}`
                     )
                     .setTitle(
-                        `🎨 ${themeData.name}`
+                        `${theme.emoji} ${theme.label}`
                     );
 
-            const title =
+            const titleInput =
                 new TextInputBuilder()
                     .setCustomId("title")
                     .setLabel("Nadpis")
@@ -1484,27 +1387,25 @@ client.on(
                         TextInputStyle.Short
                     )
                     .setPlaceholder(
-                        "Napíš nadpis..."
+                        "Napíš nadpis embedu..."
                     )
                     .setRequired(true)
                     .setMaxLength(256);
 
-            const description =
+            const descriptionInput =
                 new TextInputBuilder()
-                    .setCustomId(
-                        "description"
-                    )
-                    .setLabel("Text embedu")
+                    .setCustomId("description")
+                    .setLabel("Text")
                     .setStyle(
                         TextInputStyle.Paragraph
                     )
                     .setPlaceholder(
-                        "Napíš text..."
+                        "Napíš text embedu..."
                     )
                     .setRequired(true)
                     .setMaxLength(4000);
 
-            const footer =
+            const footerInput =
                 new TextInputBuilder()
                     .setCustomId("footer")
                     .setLabel("Footer")
@@ -1519,15 +1420,21 @@ client.on(
 
             const row1 =
                 new ActionRowBuilder()
-                    .addComponents(title);
+                    .addComponents(
+                        titleInput
+                    );
 
             const row2 =
                 new ActionRowBuilder()
-                    .addComponents(description);
+                    .addComponents(
+                        descriptionInput
+                    );
 
             const row3 =
                 new ActionRowBuilder()
-                    .addComponents(footer);
+                    .addComponents(
+                        footerInput
+                    );
 
             modal.addComponents(
                 row1,
@@ -1541,13 +1448,12 @@ client.on(
         }
 
         // ==================================================
-        // MODAL
+        // EMBED MODAL
         // ==================================================
 
         if (
             interaction.isModalSubmit()
         ) {
-
             if (
                 !interaction.customId.startsWith(
                     "embed_modal_"
@@ -1556,7 +1462,7 @@ client.on(
                 return;
             }
 
-            const theme =
+            const themeKey =
                 interaction.customId.replace(
                     "embed_modal_",
                     ""
@@ -1577,48 +1483,34 @@ client.on(
                     "footer"
                 );
 
-            const themeData =
-                themes[theme];
+            const firstEmbed =
+                createThemeEmbed(
+                    themeKey,
+                    title,
+                    description,
+                    footer,
+                    0
+                );
 
             await interaction.reply({
-
-                embeds: [
-
-                    createAnimatedEmbed(
-                        theme,
-                        title,
-                        description,
-                        footer,
-                        null,
-                        0
-                    )
-
-                ]
-
+                embeds: [firstEmbed]
             });
-
-            // ==================================================
-            // ANIMÁCIA
-            // ==================================================
-
-            let frame = 1;
 
             const message =
                 await interaction.fetchReply();
 
+            let frame = 1;
+
             const animation =
                 setInterval(
                     async () => {
-
                         try {
-
                             const embed =
-                                createAnimatedEmbed(
-                                    theme,
+                                createThemeEmbed(
+                                    themeKey,
                                     title,
                                     description,
                                     footer,
-                                    null,
                                     frame
                                 );
 
@@ -1627,20 +1519,20 @@ client.on(
                             });
 
                             frame++;
+                        } catch (error) {
+                            console.error(
+                                "Animacia skoncila:",
+                                error.message
+                            );
 
-                        }
-
-                        catch {
                             clearInterval(
                                 animation
                             );
                         }
-
                     },
-                    1800
+                    2500
                 );
 
-            // Animácia beží 30 sekúnd
             setTimeout(
                 () => {
                     clearInterval(
@@ -1654,29 +1546,24 @@ client.on(
 );
 
 // ======================================================
-// READY
+// BOT READY
 // ======================================================
 
 client.once(
     "ready",
     () => {
-
         console.log(
             `Bot je online ako ${client.user.tag}!`
         );
 
         client.user.setPresence({
-
             activities: [
-
                 {
                     name:
                         "Minecraft Rank System",
                     type: 0
                 }
-
             ],
-
             status: "online"
         });
     }
@@ -1687,9 +1574,8 @@ client.once(
 // ======================================================
 
 if (!TOKEN) {
-
     console.error(
-        "❌ DISCORD_TOKEN nie je nastavený!"
+        "DISCORD_TOKEN nie je nastaveny!"
     );
 
     process.exit(1);
@@ -1699,3 +1585,4 @@ registerCommands();
 
 client.login(TOKEN);
 ```
+
