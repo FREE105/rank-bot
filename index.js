@@ -1,4 +1,4 @@
-```javascript
+
 const {
     Client,
     GatewayIntentBits,
@@ -15,7 +15,7 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID || "1535739014760632330";
 
 if (!TOKEN) {
-    console.error("CHYBA: Chyba DISCORD_TOKEN!");
+    console.error("CHYBA: DISCORD_TOKEN nie je nastaveny!");
     process.exit(1);
 }
 
@@ -23,9 +23,10 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
 
-// ==============================
+
+// ======================================================
 // RANKY
-// ==============================
+// ======================================================
 
 const RANKS = [
     "LT1",
@@ -40,9 +41,10 @@ const RANKS = [
     "HT5"
 ];
 
-// ==============================
+
+// ======================================================
 // EMBED STYLY
-// ==============================
+// ======================================================
 
 const STYLES = {
     aurora: {
@@ -91,14 +93,14 @@ const STYLES = {
         name: "Galaxia",
         emoji: "🌠",
         color: 0x9B59B6,
-        description: "Galaxy atmosphere"
+        description: "Galaxy"
     },
 
     sunset: {
         name: "Zapad slnka",
         emoji: "🌅",
         color: 0xFF7675,
-        description: "Golden sunset"
+        description: "Golden Sunset"
     },
 
     storm: {
@@ -109,10 +111,10 @@ const STYLES = {
     },
 
     rainbow: {
-        name: "Dúha",
+        name: "Duha",
         emoji: "🌈",
         color: 0xFF69B4,
-        description: "Colorful atmosphere"
+        description: "Rainbow"
     },
 
     forest: {
@@ -123,115 +125,125 @@ const STYLES = {
     },
 
     desert: {
-        name: "Púšť",
+        name: "Pust",
         emoji: "🏜️",
         color: 0xE6A23C,
-        description: "Desert adventure"
+        description: "Desert"
     },
 
     volcano: {
         name: "Sopka",
         emoji: "🌋",
         color: 0xC0392B,
-        description: "Volcanic atmosphere"
+        description: "Volcano"
     },
 
     toxic: {
         name: "Toxic",
         emoji: "☢️",
         color: 0xA3FF12,
-        description: "Toxic zone"
+        description: "Toxic Zone"
     },
 
     cyber: {
         name: "Cyber",
         emoji: "💻",
         color: 0x00FFCC,
-        description: "Cyber atmosphere"
+        description: "Cyber"
     },
 
     blood: {
         name: "Blood",
         emoji: "🩸",
         color: 0x8B0000,
-        description: "Dark blood style"
+        description: "Dark Blood"
     },
 
     shadow: {
         name: "Shadow",
         emoji: "🌑",
         color: 0x202020,
-        description: "Dark shadow style"
+        description: "Dark Shadow"
     },
 
     diamond: {
         name: "Diamant",
         emoji: "💎",
         color: 0x00FFFF,
-        description: "Legendary diamond"
+        description: "Diamond"
     },
 
     gold: {
         name: "Gold",
         emoji: "🏆",
         color: 0xFFD700,
-        description: "Golden style"
+        description: "Golden"
     },
 
     minecraft: {
         name: "Minecraft",
         emoji: "⛏️",
         color: 0x55AA55,
-        description: "Minecraft atmosphere"
+        description: "Minecraft"
     }
 };
 
-// ==============================
+
+// ======================================================
 // COMMANDS
-// ==============================
+// ======================================================
 
-const commands = [
+const commands = [];
 
+// ADDRANK
+
+commands.push(
     new SlashCommandBuilder()
         .setName("addrank")
         .setDescription("Prida hracovi rank")
         .setDefaultMemberPermissions(
             PermissionFlagsBits.Administrator.toString()
         )
-        .addUserOption(option =>
-            option
+        .addUserOption(function(option) {
+            return option
                 .setName("hrac")
                 .setDescription("Hrac")
-                .setRequired(true)
-        )
-        .addStringOption(option =>
-            option
+                .setRequired(true);
+        })
+        .addStringOption(function(option) {
+            return option
                 .setName("gamemode")
-                .setDescription("Libovolny gamemode")
+                .setDescription("Napis lubovolny gamemode")
                 .setRequired(true)
-                .setMaxLength(100)
-        )
-        .addStringOption(option =>
-            option
+                .setMaxLength(100);
+        })
+        .addStringOption(function(option) {
+            return option
                 .setName("rank")
                 .setDescription("Vyber rank")
                 .setRequired(true)
                 .addChoices(
-                    ...RANKS.map(rank => ({
-                        name: rank,
-                        value: rank
-                    }))
-                )
-        )
-        .addStringOption(option =>
-            option
+                    { name: "LT1", value: "LT1" },
+                    { name: "LT2", value: "LT2" },
+                    { name: "LT3", value: "LT3" },
+                    { name: "LT4", value: "LT4" },
+                    { name: "LT5", value: "LT5" },
+                    { name: "HT1", value: "HT1" },
+                    { name: "HT2", value: "HT2" },
+                    { name: "HT3", value: "HT3" },
+                    { name: "HT4", value: "HT4" },
+                    { name: "HT5", value: "HT5" }
+                );
+        })
+        .addStringOption(function(option) {
+            return option
                 .setName("poznamka")
                 .setDescription("Volitelna poznamka")
                 .setRequired(false)
-                .setMaxLength(1000)
-        )
-        .addStringOption(option =>
-            option
+                .setMaxLength(1000);
+        })
+        .addStringOption(function(option) {
+            return option
                 .setName("status")
                 .setDescription("Vysledok testu")
                 .setRequired(false)
@@ -248,58 +260,98 @@ const commands = [
                         name: "Bez zmeny",
                         value: "SAME"
                     }
-                )
-        ),
+                );
+        })
+);
 
-    new SlashCommandBuilder()
-        .setName("embed")
-        .setDescription("Vytvori stylovy embed")
-        .setDefaultMemberPermissions(
-            PermissionFlagsBits.Administrator.toString()
-        )
-        .addUserOption(option =>
-            option
-                .setName("hrac")
-                .setDescription("Hrac")
-                .setRequired(true)
-        )
-        .addStringOption(option =>
-            option
-                .setName("styl")
-                .setDescription("Styl embedu")
-                .setRequired(true)
-                .addChoices(
-                    ...Object.entries(STYLES).map(([key, style]) => ({
-                        name: `${style.emoji} ${style.name}`,
-                        value: key
-                    }))
-                )
-        )
-        .addStringOption(option =>
-            option
-                .setName("text")
-                .setDescription("Volitelny text")
-                .setRequired(false)
-                .setMaxLength(1000)
-        ),
 
+// EMBED
+
+const embedCommand = new SlashCommandBuilder()
+    .setName("embed")
+    .setDescription("Vytvori stylovy embed")
+    .setDefaultMemberPermissions(
+        PermissionFlagsBits.Administrator.toString()
+    )
+    .addUserOption(function(option) {
+        return option
+            .setName("hrac")
+            .setDescription("Hrac")
+            .setRequired(true);
+    })
+    .addStringOption(function(option) {
+        return option
+            .setName("styl")
+            .setDescription("Vyber styl")
+            .setRequired(true);
+    })
+    .addStringOption(function(option) {
+        return option
+            .setName("text")
+            .setDescription("Volitelny text")
+            .setRequired(false)
+            .setMaxLength(1000);
+    });
+
+
+// EMBED CHOICES
+
+embedCommand.options[1].addChoices(
+    { name: "🌌 Polarna ziara", value: "aurora" },
+    { name: "❄️ Snezenie", value: "snow" },
+    { name: "🔥 Ohen", value: "fire" },
+    { name: "🧊 Lad", value: "ice" },
+    { name: "🌊 Ocean", value: "ocean" },
+    { name: "🚀 Vesmír", value: "space" },
+    { name: "🌠 Galaxia", value: "galaxy" },
+    { name: "🌅 Zapad slnka", value: "sunset" },
+    { name: "⛈️ Búrka", value: "storm" },
+    { name: "🌈 Duha", value: "rainbow" },
+    { name: "🌲 Les", value: "forest" },
+    { name: "🏜️ Pust", value: "desert" },
+    { name: "🌋 Sopka", value: "volcano" },
+    { name: "☢️ Toxic", value: "toxic" },
+    { name: "💻 Cyber", value: "cyber" },
+    { name: "🩸 Blood", value: "blood" },
+    { name: "🌑 Shadow", value: "shadow" },
+    { name: "💎 Diamant", value: "diamond" },
+    { name: "🏆 Gold", value: "gold" },
+    { name: "⛏️ Minecraft", value: "minecraft" }
+);
+
+commands.push(embedCommand);
+
+
+// HELP
+
+commands.push(
     new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Zobrazi pomoc"),
+        .setDescription("Zobrazi pomoc")
+);
 
+
+// PING
+
+commands.push(
     new SlashCommandBuilder()
         .setName("ping")
-        .setDescription("Skontroluje stav bota"),
+        .setDescription("Skontroluje stav bota")
+);
 
+
+// SERVERINFO
+
+commands.push(
     new SlashCommandBuilder()
         .setName("serverinfo")
         .setDescription("Informacie o serveri")
+);
 
-].map(command => command.toJSON());
 
-// ==============================
-// REGISTRACIA PRIKAZOV
-// ==============================
+// ======================================================
+// REGISTER
+// ======================================================
 
 async function registerCommands() {
 
@@ -314,25 +366,28 @@ async function registerCommands() {
         await rest.put(
             Routes.applicationCommands(CLIENT_ID),
             {
-                body: commands
+                body: commands.map(function(command) {
+                    return command.toJSON();
+                })
             }
         );
 
-        console.log("Slash prikazy boli uspesne zaregistrovane!");
+        console.log("Slash prikazy boli zaregistrovane!");
 
     } catch (error) {
 
-        console.error("Chyba pri registracii prikazov:");
+        console.error("Chyba pri registracii:");
         console.error(error);
 
     }
 }
 
-// ==============================
-// INTERACTIONS
-// ==============================
 
-client.on("interactionCreate", async interaction => {
+// ======================================================
+// INTERACTIONS
+// ======================================================
+
+client.on("interactionCreate", async function(interaction) {
 
     if (!interaction.isChatInputCommand()) {
         return;
@@ -340,20 +395,20 @@ client.on("interactionCreate", async interaction => {
 
     try {
 
-        // ==========================
+        // =========================
         // PING
-        // ==========================
+        // =========================
 
         if (interaction.commandName === "ping") {
-
-            const ping = client.ws.ping;
 
             const embed = new EmbedBuilder()
                 .setColor(0x57F287)
                 .setTitle("🏓 Pong!")
                 .setDescription(
-                    "Bot funguje spravne.\n\n" +
-                    `📡 Ping: **${ping}ms**`
+                    "Bot funguje!\n\n" +
+                    "📡 Ping: " +
+                    client.ws.ping +
+                    "ms"
                 )
                 .setTimestamp();
 
@@ -362,9 +417,10 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // ==========================
+
+        // =========================
         // HELP
-        // ==========================
+        // =========================
 
         if (interaction.commandName === "help") {
 
@@ -376,28 +432,24 @@ client.on("interactionCreate", async interaction => {
                 )
                 .addFields(
                     {
-                        name: "🏆 Rank System",
+                        name: "🏆 Rank",
                         value:
-                            "`/addrank` - prida rank\n" +
-                            "`/embed` - stylovy embed"
+                            "/addrank - pridat rank\n" +
+                            "/embed - vytvorit stylovy embed"
                     },
                     {
-                        name: "🛠️ Uzitocne",
+                        name: "🛠️ Utility",
                         value:
-                            "`/ping` - stav bota\n" +
-                            "`/serverinfo` - informacie o serveri\n" +
-                            "`/help` - pomoc"
+                            "/ping - stav bota\n" +
+                            "/serverinfo - informacie o serveri"
                     },
                     {
                         name: "🏆 Ranky",
-                        value: RANKS
-                            .map(rank => `\`${rank}\``)
-                            .join(" • ")
+                        value:
+                            "LT1 • LT2 • LT3 • LT4 • LT5\n" +
+                            "HT1 • HT2 • HT3 • HT4 • HT5"
                     }
                 )
-                .setFooter({
-                    text: "Minecraft Rank System"
-                })
                 .setTimestamp();
 
             return interaction.reply({
@@ -405,16 +457,17 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // ==========================
+
+        // =========================
         // SERVERINFO
-        // ==========================
+        // =========================
 
         if (interaction.commandName === "serverinfo") {
 
             if (!interaction.guild) {
 
                 return interaction.reply({
-                    content: "❌ Tento prikaz pouzi na serveri.",
+                    content: "❌ Pouzi tento prikaz na serveri.",
                     ephemeral: true
                 });
             }
@@ -423,27 +476,19 @@ client.on("interactionCreate", async interaction => {
 
             const embed = new EmbedBuilder()
                 .setColor(0x5865F2)
-                .setTitle(`🏰 ${guild.name}`)
+                .setTitle("🏰 " + guild.name)
                 .setThumbnail(
-                    guild.iconURL() || null
+                    guild.iconURL() || undefined
                 )
                 .addFields(
                     {
                         name: "👥 Clenovia",
-                        value: `${guild.memberCount}`,
+                        value: String(guild.memberCount),
                         inline: true
                     },
                     {
-                        name: "🆔 Server ID",
+                        name: "🆔 ID",
                         value: guild.id,
-                        inline: true
-                    },
-                    {
-                        name: "📅 Vytvoreny",
-                        value:
-                            `<t:${Math.floor(
-                                guild.createdTimestamp / 1000
-                            )}:D>`,
                         inline: true
                     }
                 )
@@ -454,11 +499,15 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // ==========================
-        // ADDRANK
-        // ==========================
 
-        if (interaction.commandName === "addrank") {
+        // =========================
+        // PERMISSION CHECK
+        // =========================
+
+        if (
+            interaction.commandName === "addrank" ||
+            interaction.commandName === "embed"
+        ) {
 
             if (
                 !interaction.memberPermissions ||
@@ -469,10 +518,18 @@ client.on("interactionCreate", async interaction => {
 
                 return interaction.reply({
                     content:
-                        "❌ Tento prikaz moze pouzivat iba **Administrator**.",
+                        "❌ Tento prikaz moze pouzivat iba Administrator.",
                     ephemeral: true
                 });
             }
+        }
+
+
+        // =========================
+        // ADDRANK
+        // =========================
+
+        if (interaction.commandName === "addrank") {
 
             const user =
                 interaction.options.getUser("hrac");
@@ -506,10 +563,11 @@ client.on("interactionCreate", async interaction => {
 
             const embed = new EmbedBuilder()
                 .setColor(color)
-                .setTitle(`🏆 ${rank} • Rank Test`)
+                .setTitle("🏆 " + rank + " • Rank Test")
                 .setDescription(
-                    `### 👤 <@${user.id}>\n` +
-                    "Rank test bol dokončený."
+                    "### 👤 " +
+                    user.username +
+                    "\nRank test bol dokončený."
                 )
                 .setThumbnail(
                     user.displayAvatarURL()
@@ -517,7 +575,7 @@ client.on("interactionCreate", async interaction => {
                 .addFields(
                     {
                         name: "👤 Hrac",
-                        value: `<@${user.id}>`,
+                        value: "<@" + user.id + ">",
                         inline: true
                     },
                     {
@@ -527,7 +585,7 @@ client.on("interactionCreate", async interaction => {
                     },
                     {
                         name: "🏆 Rank",
-                        value: `**${rank}**`,
+                        value: "**" + rank + "**",
                         inline: true
                     },
                     {
@@ -537,7 +595,7 @@ client.on("interactionCreate", async interaction => {
                     },
                     {
                         name: "🧪 Testoval",
-                        value: `<@${interaction.user.id}>`,
+                        value: "<@" + interaction.user.id + ">",
                         inline: true
                     },
                     {
@@ -556,25 +614,12 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // ==========================
+
+        // =========================
         // EMBED
-        // ==========================
+        // =========================
 
         if (interaction.commandName === "embed") {
-
-            if (
-                !interaction.memberPermissions ||
-                !interaction.memberPermissions.has(
-                    PermissionFlagsBits.Administrator
-                )
-            ) {
-
-                return interaction.reply({
-                    content:
-                        "❌ Tento prikaz moze pouzivat iba **Administrator**.",
-                    ephemeral: true
-                });
-            }
 
             const user =
                 interaction.options.getUser("hrac");
@@ -582,10 +627,11 @@ client.on("interactionCreate", async interaction => {
             const styleKey =
                 interaction.options.getString("styl");
 
-            const customText =
+            const text =
                 interaction.options.getString("text");
 
-            const style = STYLES[styleKey];
+            const style =
+                STYLES[styleKey];
 
             if (!style) {
 
@@ -595,21 +641,28 @@ client.on("interactionCreate", async interaction => {
                 });
             }
 
+            const description =
+                text ||
+                style.description +
+                "\n\n👤 Hrac: <@" +
+                user.id +
+                ">";
+
             const embed = new EmbedBuilder()
                 .setColor(style.color)
                 .setTitle(
-                    `${style.emoji} ${style.name}`
+                    style.emoji +
+                    " " +
+                    style.name
                 )
-                .setDescription(
-                    customText ||
-                    `${style.description}\n\n` +
-                    `👤 Hrac: <@${user.id}>`
-                )
+                .setDescription(description)
                 .setThumbnail(
                     user.displayAvatarURL()
                 )
                 .setFooter({
-                    text: `Minecraft • ${style.name}`
+                    text:
+                        "Minecraft • " +
+                        style.name
                 })
                 .setTimestamp();
 
@@ -623,47 +676,43 @@ client.on("interactionCreate", async interaction => {
         console.error("Interaction error:");
         console.error(error);
 
-        if (interaction.replied || interaction.deferred) {
-
-            await interaction.followUp({
-                content:
-                    "❌ Nastala chyba pri vykonavani prikazu.",
-                ephemeral: true
-            });
-
-        } else {
+        if (!interaction.replied) {
 
             await interaction.reply({
                 content:
                     "❌ Nastala chyba pri vykonavani prikazu.",
                 ephemeral: true
             });
+
         }
     }
 });
 
-// ==============================
-// BOT READY
-// ==============================
 
-client.once("clientReady", readyClient => {
+// ======================================================
+// READY
+// ======================================================
+
+client.once("clientReady", function() {
 
     console.log(
-        `Bot je online ako ${readyClient.user.tag}!`
+        "BOT JE ONLINE ako " +
+        client.user.tag
     );
 
-    readyClient.user.setActivity(
+    client.user.setActivity(
         "Minecraft Rank System"
     );
 });
 
-// ==============================
-// RENDER SERVER
-// ==============================
+
+// ======================================================
+// RENDER WEB SERVER
+// ======================================================
 
 const PORT = process.env.PORT || 10000;
 
-http.createServer((req, res) => {
+http.createServer(function(req, res) {
 
     res.writeHead(200, {
         "Content-Type": "text/plain; charset=utf-8"
@@ -671,16 +720,18 @@ http.createServer((req, res) => {
 
     res.end("Rank Bot is online!");
 
-}).listen(PORT, "0.0.0.0", () => {
+}).listen(PORT, "0.0.0.0", function() {
 
     console.log(
-        `Web server bezi na porte ${PORT}`
+        "Web server bezi na porte " +
+        PORT
     );
 });
 
-// ==============================
+
+// ======================================================
 // START
-// ==============================
+// ======================================================
 
 async function start() {
 
@@ -693,14 +744,14 @@ async function start() {
     await client.login(TOKEN);
 }
 
-start().catch(error => {
+start().catch(function(error) {
 
     console.error(
-        "Bot sa nepodarilo spustit:"
+        "BOT SA NEPODARILO SPUSTIT:"
     );
 
     console.error(error);
 
     process.exit(1);
 });
-```
+
