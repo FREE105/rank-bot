@@ -11,34 +11,21 @@ const {
 
 const http = require("http");
 
-// =====================================================
-// CONFIG
-// =====================================================
-
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID || "1535739014760632330";
 
 if (!TOKEN) {
-    console.error("❌ Chýba DISCORD_TOKEN v Environment Variables!");
+    console.error("CHYBA: Chyba DISCORD_TOKEN!");
     process.exit(1);
 }
 
-// =====================================================
-// DISCORD CLIENT
-// =====================================================
-
-// Používame iba Guilds.
-// Žiadne MessageContent, Members ani Presence intenty.
-// Preto netreba zapínať Privileged Gateway Intents.
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds
-    ]
+    intents: [GatewayIntentBits.Guilds]
 });
 
-// =====================================================
+// ==============================
 // RANKY
-// =====================================================
+// ==============================
 
 const RANKS = [
     "LT1",
@@ -53,208 +40,181 @@ const RANKS = [
     "HT5"
 ];
 
-// =====================================================
-// EMBED ŠTÝLY
-// =====================================================
+// ==============================
+// EMBED STYLY
+// ==============================
 
-const EMBED_STYLES = {
+const STYLES = {
     aurora: {
-        name: "🌌 Polárna žiara",
-        color: 0x57F287,
+        name: "Polarna ziara",
         emoji: "🌌",
-        title: "POLÁRNA ŽIARA",
-        description: "✨ Aurora Borealis • Northern Lights ✨"
+        color: 0x57F287,
+        description: "Aurora Borealis"
     },
 
     snow: {
-        name: "❄️ Sneženie",
-        color: 0xDDEEFF,
+        name: "Snezenie",
         emoji: "❄️",
-        title: "SNEŽENIE",
-        description: "❄️ Hory pokryté snehom"
+        color: 0xDDEEFF,
+        description: "Zimna snehova atmosfera"
     },
 
     fire: {
-        name: "🔥 Oheň",
-        color: 0xFF4500,
+        name: "Ohen",
         emoji: "🔥",
-        title: "FIRE",
-        description: "🔥 Horúci a energický štýl"
+        color: 0xFF4500,
+        description: "Horuca ohniva atmosfera"
     },
 
     ice: {
-        name: "🧊 Ľad",
-        color: 0x00BFFF,
+        name: "Lad",
         emoji: "🧊",
-        title: "ICE",
-        description: "🧊 Chladný ľadový štýl"
+        color: 0x00BFFF,
+        description: "Mraziva ladova atmosfera"
     },
 
     ocean: {
-        name: "🌊 Oceán",
-        color: 0x0077FF,
+        name: "Ocean",
         emoji: "🌊",
-        title: "OCEAN",
-        description: "🌊 Deep Ocean"
+        color: 0x0077FF,
+        description: "Deep Ocean"
     },
 
     space: {
-        name: "🌌 Vesmír",
+        name: "Vesmír",
+        emoji: "🚀",
         color: 0x6C5CE7,
-        emoji: "🌌",
-        title: "SPACE",
-        description: "🚀 Deep Space"
+        description: "Deep Space"
     },
 
     galaxy: {
-        name: "🌠 Galaxia",
-        color: 0x9B59B6,
+        name: "Galaxia",
         emoji: "🌠",
-        title: "GALAXY",
-        description: "🌠 Milky Way"
+        color: 0x9B59B6,
+        description: "Galaxy atmosphere"
     },
 
     sunset: {
-        name: "🌅 Západ slnka",
-        color: 0xFF7675,
+        name: "Zapad slnka",
         emoji: "🌅",
-        title: "SUNSET",
-        description: "🌅 Golden sunset"
+        color: 0xFF7675,
+        description: "Golden sunset"
     },
 
     storm: {
-        name: "⛈️ Búrka",
-        color: 0x5865F2,
+        name: "Búrka",
         emoji: "⛈️",
-        title: "STORM",
-        description: "⚡ Thunderstorm"
+        color: 0x5865F2,
+        description: "Thunderstorm"
     },
 
     rainbow: {
-        name: "🌈 Dúha",
-        color: 0xFF69B4,
+        name: "Dúha",
         emoji: "🌈",
-        title: "RAINBOW",
-        description: "🌈 Colorful vibes"
+        color: 0xFF69B4,
+        description: "Colorful atmosphere"
     },
 
     forest: {
-        name: "🌲 Les",
-        color: 0x228B22,
+        name: "Les",
         emoji: "🌲",
-        title: "FOREST",
-        description: "🌲 Deep Forest"
+        color: 0x228B22,
+        description: "Deep Forest"
     },
 
     desert: {
-        name: "🏜️ Púšť",
-        color: 0xE6A23C,
+        name: "Púšť",
         emoji: "🏜️",
-        title: "DESERT",
-        description: "🏜️ Desert adventure"
+        color: 0xE6A23C,
+        description: "Desert adventure"
     },
 
     volcano: {
-        name: "🌋 Sopka",
-        color: 0xC0392B,
+        name: "Sopka",
         emoji: "🌋",
-        title: "VOLCANO",
-        description: "🌋 Erupting volcano"
+        color: 0xC0392B,
+        description: "Volcanic atmosphere"
     },
 
     toxic: {
-        name: "☢️ Toxic",
-        color: 0xA3FF12,
+        name: "Toxic",
         emoji: "☢️",
-        title: "TOXIC",
-        description: "☢️ Toxic zone"
+        color: 0xA3FF12,
+        description: "Toxic zone"
     },
 
     cyber: {
-        name: "💻 Cyber",
-        color: 0x00FFCC,
+        name: "Cyber",
         emoji: "💻",
-        title: "CYBER",
-        description: "💻 Cyber atmosphere"
+        color: 0x00FFCC,
+        description: "Cyber atmosphere"
     },
 
     blood: {
-        name: "🩸 Blood",
-        color: 0x8B0000,
+        name: "Blood",
         emoji: "🩸",
-        title: "BLOOD",
-        description: "🩸 Dark blood style"
+        color: 0x8B0000,
+        description: "Dark blood style"
     },
 
     shadow: {
-        name: "🌑 Shadow",
-        color: 0x202020,
+        name: "Shadow",
         emoji: "🌑",
-        title: "SHADOW",
-        description: "🌑 Dark mode"
+        color: 0x202020,
+        description: "Dark shadow style"
     },
 
     diamond: {
-        name: "💎 Diamant",
-        color: 0x00FFFF,
+        name: "Diamant",
         emoji: "💎",
-        title: "DIAMOND",
-        description: "💎 Legendary diamond"
+        color: 0x00FFFF,
+        description: "Legendary diamond"
     },
 
     gold: {
-        name: "🏆 Gold",
-        color: 0xFFD700,
+        name: "Gold",
         emoji: "🏆",
-        title: "GOLD",
-        description: "🏆 Golden rank"
+        color: 0xFFD700,
+        description: "Golden style"
     },
 
     minecraft: {
-        name: "⛏️ Minecraft",
-        color: 0x55AA55,
+        name: "Minecraft",
         emoji: "⛏️",
-        title: "MINECRAFT",
-        description: "⛏️ Minecraft Rank System"
+        color: 0x55AA55,
+        description: "Minecraft atmosphere"
     }
 };
 
-// =====================================================
-// SLASH COMMANDS
-// =====================================================
+// ==============================
+// COMMANDS
+// ==============================
 
 const commands = [
 
-    // ===============================
-    // /addrank
-    // ===============================
-
     new SlashCommandBuilder()
         .setName("addrank")
-        .setDescription("Pridá hráčovi Minecraft rank.")
+        .setDescription("Prida hracovi rank")
         .setDefaultMemberPermissions(
             PermissionFlagsBits.Administrator.toString()
         )
-
         .addUserOption(option =>
             option
-                .setName("hráč")
-                .setDescription("Hráč, ktorého si testoval.")
+                .setName("hrac")
+                .setDescription("Hrac")
                 .setRequired(true)
         )
-
         .addStringOption(option =>
             option
                 .setName("gamemode")
-                .setDescription("Napíš ľubovoľný gamemode.")
+                .setDescription("Libovolny gamemode")
                 .setRequired(true)
                 .setMaxLength(100)
         )
-
         .addStringOption(option =>
             option
                 .setName("rank")
-                .setDescription("Vyber rank.")
+                .setDescription("Vyber rank")
                 .setRequired(true)
                 .addChoices(
                     ...RANKS.map(rank => ({
@@ -263,110 +223,87 @@ const commands = [
                     }))
                 )
         )
-
         .addStringOption(option =>
             option
-                .setName("poznámka")
-                .setDescription("Voliteľná poznámka k testu.")
+                .setName("poznamka")
+                .setDescription("Volitelna poznamka")
                 .setRequired(false)
                 .setMaxLength(1000)
         )
-
         .addStringOption(option =>
             option
                 .setName("status")
-                .setDescription("Ako dopadol rank?")
+                .setDescription("Vysledok testu")
                 .setRequired(false)
                 .addChoices(
                     {
-                        name: "🟢 Rank UP",
+                        name: "Rank UP",
                         value: "UP"
                     },
                     {
-                        name: "🔴 Rank DOWN",
+                        name: "Rank DOWN",
                         value: "DOWN"
                     },
                     {
-                        name: "⚪ Bez zmeny",
+                        name: "Bez zmeny",
                         value: "SAME"
                     }
                 )
         ),
 
-    // ===============================
-    // /embed
-    // ===============================
-
     new SlashCommandBuilder()
         .setName("embed")
-        .setDescription("Vytvorí štýlový Minecraft embed.")
+        .setDescription("Vytvori stylovy embed")
         .setDefaultMemberPermissions(
             PermissionFlagsBits.Administrator.toString()
         )
-
         .addUserOption(option =>
             option
-                .setName("hráč")
-                .setDescription("Komu sa má embed zobraziť.")
+                .setName("hrac")
+                .setDescription("Hrac")
                 .setRequired(true)
         )
-
         .addStringOption(option =>
             option
                 .setName("styl")
-                .setDescription("Vyber štýl embedu.")
+                .setDescription("Styl embedu")
                 .setRequired(true)
                 .addChoices(
-                    ...Object.entries(EMBED_STYLES).map(
-                        ([key, style]) => ({
-                            name: style.name,
-                            value: key
-                        })
-                    )
+                    ...Object.entries(STYLES).map(([key, style]) => ({
+                        name: `${style.emoji} ${style.name}`,
+                        value: key
+                    }))
                 )
         )
-
         .addStringOption(option =>
             option
                 .setName("text")
-                .setDescription("Voliteľný text.")
+                .setDescription("Volitelny text")
                 .setRequired(false)
                 .setMaxLength(1000)
         ),
 
-    // ===============================
-    // /help
-    // ===============================
-
     new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Zobrazí všetky príkazy."),
-
-    // ===============================
-    // /ping
-    // ===============================
+        .setDescription("Zobrazi pomoc"),
 
     new SlashCommandBuilder()
         .setName("ping")
-        .setDescription("Skontroluje odozvu bota."),
-
-    // ===============================
-    // /serverinfo
-    // ===============================
+        .setDescription("Skontroluje stav bota"),
 
     new SlashCommandBuilder()
         .setName("serverinfo")
-        .setDescription("Zobrazí informácie o serveri.")
+        .setDescription("Informacie o serveri")
 
 ].map(command => command.toJSON());
 
-// =====================================================
-// REGISTER COMMANDS
-// =====================================================
+// ==============================
+// REGISTRACIA PRIKAZOV
+// ==============================
 
 async function registerCommands() {
 
-    console.log("Registrujem slash príkazy...");
+    console.log("Registrujem slash prikazy...");
 
     const rest = new REST({
         version: "10"
@@ -381,19 +318,19 @@ async function registerCommands() {
             }
         );
 
-        console.log("✅ Slash príkazy boli úspešne zaregistrované!");
+        console.log("Slash prikazy boli uspesne zaregistrovane!");
 
     } catch (error) {
 
-        console.error("❌ Chyba pri registrácii príkazov:");
+        console.error("Chyba pri registracii prikazov:");
         console.error(error);
 
     }
 }
 
-// =====================================================
+// ==============================
 // INTERACTIONS
-// =====================================================
+// ==============================
 
 client.on("interactionCreate", async interaction => {
 
@@ -403,9 +340,9 @@ client.on("interactionCreate", async interaction => {
 
     try {
 
-        // =================================================
-        // /PING
-        // =================================================
+        // ==========================
+        // PING
+        // ==========================
 
         if (interaction.commandName === "ping") {
 
@@ -415,7 +352,7 @@ client.on("interactionCreate", async interaction => {
                 .setColor(0x57F287)
                 .setTitle("🏓 Pong!")
                 .setDescription(
-                    `Bot funguje správne.\n\n` +
+                    "Bot funguje spravne.\n\n" +
                     `📡 Ping: **${ping}ms**`
                 )
                 .setTimestamp();
@@ -425,9 +362,9 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // =================================================
-        // /HELP
-        // =================================================
+        // ==========================
+        // HELP
+        // ==========================
 
         if (interaction.commandName === "help") {
 
@@ -435,26 +372,27 @@ client.on("interactionCreate", async interaction => {
                 .setColor(0x5865F2)
                 .setTitle("🤖 Rank Bot")
                 .setDescription(
-                    "Minecraft Discord Rank System"
+                    "Minecraft Rank System"
                 )
                 .addFields(
                     {
                         name: "🏆 Rank System",
                         value:
-                            "`/addrank` — pridá rank hráčovi\n" +
-                            "`/embed` — vytvorí štýlový embed"
+                            "`/addrank` - prida rank\n" +
+                            "`/embed` - stylovy embed"
                     },
                     {
-                        name: "🛠️ Utility",
+                        name: "🛠️ Uzitocne",
                         value:
-                            "`/ping` — skontroluje bota\n" +
-                            "`/serverinfo` — informácie o serveri\n" +
-                            "`/help` — táto pomoc"
+                            "`/ping` - stav bota\n" +
+                            "`/serverinfo` - informacie o serveri\n" +
+                            "`/help` - pomoc"
                     },
                     {
-                        name: "🏆 Dostupné ranky",
-                        value:
-                            RANKS.map(rank => `\`${rank}\``).join(" • ")
+                        name: "🏆 Ranky",
+                        value: RANKS
+                            .map(rank => `\`${rank}\``)
+                            .join(" • ")
                     }
                 )
                 .setFooter({
@@ -467,28 +405,31 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // =================================================
-        // /SERVERINFO
-        // =================================================
+        // ==========================
+        // SERVERINFO
+        // ==========================
 
         if (interaction.commandName === "serverinfo") {
 
-            const guild = interaction.guild;
+            if (!interaction.guild) {
 
-            if (!guild) {
                 return interaction.reply({
-                    content: "❌ Tento príkaz musíš použiť na serveri.",
+                    content: "❌ Tento prikaz pouzi na serveri.",
                     ephemeral: true
                 });
             }
 
+            const guild = interaction.guild;
+
             const embed = new EmbedBuilder()
                 .setColor(0x5865F2)
                 .setTitle(`🏰 ${guild.name}`)
-                .setThumbnail(guild.iconURL())
+                .setThumbnail(
+                    guild.iconURL() || null
+                )
                 .addFields(
                     {
-                        name: "👥 Členovia",
+                        name: "👥 Clenovia",
                         value: `${guild.memberCount}`,
                         inline: true
                     },
@@ -498,9 +439,11 @@ client.on("interactionCreate", async interaction => {
                         inline: true
                     },
                     {
-                        name: "📅 Vytvorený",
+                        name: "📅 Vytvoreny",
                         value:
-                            `<t:${Math.floor(guild.createdTimestamp / 1000)}:D>`,
+                            `<t:${Math.floor(
+                                guild.createdTimestamp / 1000
+                            )}:D>`,
                         inline: true
                     }
                 )
@@ -511,28 +454,28 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // =================================================
-        // /ADDRANK
-        // =================================================
+        // ==========================
+        // ADDRANK
+        // ==========================
 
         if (interaction.commandName === "addrank") {
 
-            // Dodatočná kontrola oprávnenia.
             if (
-                !interaction.memberPermissions?.has(
+                !interaction.memberPermissions ||
+                !interaction.memberPermissions.has(
                     PermissionFlagsBits.Administrator
                 )
             ) {
 
                 return interaction.reply({
                     content:
-                        "❌ Tento príkaz môže používať iba **Administrátor**.",
+                        "❌ Tento prikaz moze pouzivat iba **Administrator**.",
                     ephemeral: true
                 });
             }
 
             const user =
-                interaction.options.getUser("hráč");
+                interaction.options.getUser("hrac");
 
             const gamemode =
                 interaction.options.getString("gamemode");
@@ -541,37 +484,39 @@ client.on("interactionCreate", async interaction => {
                 interaction.options.getString("rank");
 
             const note =
-                interaction.options.getString("poznámka") ||
-                "Bez poznámky";
+                interaction.options.getString("poznamka") ||
+                "Bez poznamky";
 
             const status =
                 interaction.options.getString("status") ||
                 "SAME";
 
             let statusText = "⚪ Bez zmeny";
-            let statusColor = 0x5865F2;
+            let color = 0x5865F2;
 
             if (status === "UP") {
                 statusText = "🟢 RANK UP";
-                statusColor = 0x57F287;
+                color = 0x57F287;
             }
 
             if (status === "DOWN") {
                 statusText = "🔴 RANK DOWN";
-                statusColor = 0xED4245;
+                color = 0xED4245;
             }
 
             const embed = new EmbedBuilder()
-                .setColor(statusColor)
-                .setTitle(`🏆 ${rank} • Rank test`)
+                .setColor(color)
+                .setTitle(`🏆 ${rank} • Rank Test`)
                 .setDescription(
                     `### 👤 <@${user.id}>\n` +
-                    `Rank test bol dokončený.`
+                    "Rank test bol dokončený."
                 )
-                .setThumbnail(user.displayAvatarURL())
+                .setThumbnail(
+                    user.displayAvatarURL()
+                )
                 .addFields(
                     {
-                        name: "👤 Hráč",
+                        name: "👤 Hrac",
                         value: `<@${user.id}>`,
                         inline: true
                     },
@@ -596,7 +541,7 @@ client.on("interactionCreate", async interaction => {
                         inline: true
                     },
                     {
-                        name: "📝 Poznámka",
+                        name: "📝 Poznamka",
                         value: note,
                         inline: false
                     }
@@ -611,27 +556,28 @@ client.on("interactionCreate", async interaction => {
             });
         }
 
-        // =================================================
-        // /EMBED
-        // =================================================
+        // ==========================
+        // EMBED
+        // ==========================
 
         if (interaction.commandName === "embed") {
 
             if (
-                !interaction.memberPermissions?.has(
+                !interaction.memberPermissions ||
+                !interaction.memberPermissions.has(
                     PermissionFlagsBits.Administrator
                 )
             ) {
 
                 return interaction.reply({
                     content:
-                        "❌ Tento príkaz môže používať iba **Administrátor**.",
+                        "❌ Tento prikaz moze pouzivat iba **Administrator**.",
                     ephemeral: true
                 });
             }
 
             const user =
-                interaction.options.getUser("hráč");
+                interaction.options.getUser("hrac");
 
             const styleKey =
                 interaction.options.getString("styl");
@@ -639,13 +585,12 @@ client.on("interactionCreate", async interaction => {
             const customText =
                 interaction.options.getString("text");
 
-            const style =
-                EMBED_STYLES[styleKey];
+            const style = STYLES[styleKey];
 
             if (!style) {
 
                 return interaction.reply({
-                    content: "❌ Tento štýl neexistuje.",
+                    content: "❌ Neznamy styl.",
                     ephemeral: true
                 });
             }
@@ -653,17 +598,18 @@ client.on("interactionCreate", async interaction => {
             const embed = new EmbedBuilder()
                 .setColor(style.color)
                 .setTitle(
-                    `${style.emoji} ${style.title}`
+                    `${style.emoji} ${style.name}`
                 )
                 .setDescription(
                     customText ||
                     `${style.description}\n\n` +
-                    `👤 **Hráč:** <@${user.id}>\n` +
-                    `✨ **Štýl:** ${style.name}`
+                    `👤 Hrac: <@${user.id}>`
                 )
-                .setThumbnail(user.displayAvatarURL())
+                .setThumbnail(
+                    user.displayAvatarURL()
+                )
                 .setFooter({
-                    text: `Minecraft • ${style.title}`
+                    text: `Minecraft • ${style.name}`
                 })
                 .setTimestamp();
 
@@ -674,14 +620,14 @@ client.on("interactionCreate", async interaction => {
 
     } catch (error) {
 
-        console.error("❌ Interaction error:");
+        console.error("Interaction error:");
         console.error(error);
 
         if (interaction.replied || interaction.deferred) {
 
             await interaction.followUp({
                 content:
-                    "❌ Nastala chyba pri vykonávaní príkazu.",
+                    "❌ Nastala chyba pri vykonavani prikazu.",
                 ephemeral: true
             });
 
@@ -689,34 +635,31 @@ client.on("interactionCreate", async interaction => {
 
             await interaction.reply({
                 content:
-                    "❌ Nastala chyba pri vykonávaní príkazu.",
+                    "❌ Nastala chyba pri vykonavani prikazu.",
                 ephemeral: true
             });
         }
     }
 });
 
-// =====================================================
+// ==============================
 // BOT READY
-// =====================================================
+// ==============================
 
 client.once("clientReady", readyClient => {
 
     console.log(
-        `✅ Bot je online ako ${readyClient.user.tag}!`
+        `Bot je online ako ${readyClient.user.tag}!`
     );
 
     readyClient.user.setActivity(
-        "Minecraft Rank System",
-        {
-            type: 0
-        }
+        "Minecraft Rank System"
     );
 });
 
-// =====================================================
-// RENDER WEB SERVER
-// =====================================================
+// ==============================
+// RENDER SERVER
+// ==============================
 
 const PORT = process.env.PORT || 10000;
 
@@ -726,34 +669,38 @@ http.createServer((req, res) => {
         "Content-Type": "text/plain; charset=utf-8"
     });
 
-    res.end("Rank Bot is online! 🟢");
+    res.end("Rank Bot is online!");
 
 }).listen(PORT, "0.0.0.0", () => {
 
     console.log(
-        `🌐 Web server beží na porte ${PORT}`
+        `Web server bezi na porte ${PORT}`
     );
 });
 
-// =====================================================
+// ==============================
 // START
-// =====================================================
+// ==============================
 
 async function start() {
 
     await registerCommands();
 
-    console.log("🔌 Pripájam bota na Discord...");
+    console.log(
+        "Pripajam bota na Discord..."
+    );
 
     await client.login(TOKEN);
 }
 
 start().catch(error => {
 
-    console.error("❌ Bot sa nepodarilo spustiť:");
+    console.error(
+        "Bot sa nepodarilo spustit:"
+    );
+
     console.error(error);
 
     process.exit(1);
 });
 ```
-
