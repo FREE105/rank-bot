@@ -1,3 +1,25 @@
+const http = require("http");
+
+const PORT = process.env.PORT || 3000;
+
+// =========================
+// RENDER WEB SERVER
+// =========================
+
+http.createServer((req, res) => {
+    res.writeHead(200, {
+        "Content-Type": "text/plain"
+    });
+
+    res.end("Rank Bot is online!");
+}).listen(PORT, "0.0.0.0", () => {
+    console.log(`Web server beží na porte ${PORT}`);
+});
+
+// =========================
+// DISCORD
+// =========================
+
 const {
     Client,
     GatewayIntentBits,
@@ -9,10 +31,13 @@ const {
 
 const fs = require("fs");
 
+// =========================
+// SETTINGS
+// =========================
+
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = "1535739014760632330";
 
-// NÁZOV ROLE, KTORÁ MÔŽE EDITOVAŤ RANKY
 const RANK_EDITOR_ROLE = "Rank editor";
 
 const DB_FILE = "./ranks.json";
@@ -27,18 +52,23 @@ if (!fs.existsSync(DB_FILE)) {
 
 function loadRanks() {
     try {
-        return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+        return JSON.parse(
+            fs.readFileSync(DB_FILE, "utf8")
+        );
     } catch {
         return {};
     }
 }
 
 function saveRanks(data) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+    fs.writeFileSync(
+        DB_FILE,
+        JSON.stringify(data, null, 2)
+    );
 }
 
 // =========================
-// CLIENT
+// DISCORD CLIENT
 // =========================
 
 const client = new Client({
@@ -58,6 +88,7 @@ const rankChoices = [
     { name: "LT3", value: "LT3" },
     { name: "LT4", value: "LT4" },
     { name: "LT5", value: "LT5" },
+
     { name: "HT1", value: "HT1" },
     { name: "HT2", value: "HT2" },
     { name: "HT3", value: "HT3" },
@@ -71,23 +102,25 @@ const rankChoices = [
 
 const commands = [
 
+    // /rank
     new SlashCommandBuilder()
         .setName("rank")
         .setDescription("Zobrazí rank hráča")
         .addUserOption(option =>
             option
                 .setName("hráč")
-                .setDescription("Hráč")
+                .setDescription("Vyber hráča")
                 .setRequired(true)
         ),
 
+    // /setrank
     new SlashCommandBuilder()
         .setName("setrank")
         .setDescription("Nastaví rank hráča")
         .addUserOption(option =>
             option
                 .setName("hráč")
-                .setDescription("Hráč")
+                .setDescription("Vyber hráča")
                 .setRequired(true)
         )
         .addStringOption(option =>
@@ -110,16 +143,18 @@ const commands = [
                 .setRequired(false)
         ),
 
+    // /removerank
     new SlashCommandBuilder()
         .setName("removerank")
         .setDescription("Odstráni rank hráča")
         .addUserOption(option =>
             option
                 .setName("hráč")
-                .setDescription("Hráč")
+                .setDescription("Vyber hráča")
                 .setRequired(true)
         ),
 
+    // /ranks
     new SlashCommandBuilder()
         .setName("ranks")
         .setDescription("Zobrazí všetkých hráčov s rankom")
@@ -127,35 +162,54 @@ const commands = [
 ].map(command => command.toJSON());
 
 // =========================
-// REGISTRÁCIA PRÍKAZOV
+// REGISTER COMMANDS
 // =========================
 
-const rest = new REST({ version: "10" }).setToken(TOKEN);
+const rest = new REST({
+    version: "10"
+}).setToken(TOKEN);
 
 async function registerCommands() {
+
     try {
+
         console.log("Registrujem slash príkazy...");
 
         await rest.put(
             Routes.applicationCommands(CLIENT_ID),
-            { body: commands }
+            {
+                body: commands
+            }
         );
 
-        console.log("Slash príkazy zaregistrované!");
+        console.log(
+            "Slash príkazy boli úspešne zaregistrované!"
+        );
+
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "Chyba pri registrácii príkazov:",
+            error
+        );
     }
 }
 
 // =========================
-// KONTROLA ROLE
+// RANK EDITOR CHECK
 // =========================
 
 function isRankEditor(interaction) {
 
-    if (!interaction.guild) return false;
+    if (!interaction.guild) {
+        return false;
+    }
 
     const member = interaction.member;
+
+    if (!member || !member.roles) {
+        return false;
+    }
 
     return member.roles.cache.some(
         role => role.name === RANK_EDITOR_ROLE
@@ -163,20 +217,24 @@ function isRankEditor(interaction) {
 }
 
 // =========================
-// READY
+// BOT READY
 // =========================
 
 client.once("ready", () => {
 
-    console.log(`Bot je online ako ${client.user.tag}!`);
+    console.log(
+        `Bot je online ako ${client.user.tag}!`
+    );
 
     client.user.setPresence({
+
         activities: [
             {
                 name: "Minecraft Rank System",
                 type: 0
             }
         ],
+
         status: "online"
     });
 });
@@ -185,240 +243,366 @@ client.once("ready", () => {
 // INTERACTIONS
 // =========================
 
-client.on("interactionCreate", async interaction => {
+client.on(
+    "interactionCreate",
+    async interaction => {
 
-    if (!interaction.isChatInputCommand()) return;
-
-    // =========================
-    // KONTROLA RANK EDITORA
-    // =========================
-
-    if (
-        interaction.commandName === "setrank" ||
-        interaction.commandName === "removerank"
-    ) {
-
-        if (!isRankEditor(interaction)) {
-
-            return interaction.reply({
-                content: "❌ Tento príkaz môže používať iba tím **Rank editor**.",
-                ephemeral: true
-            });
+        if (!interaction.isChatInputCommand()) {
+            return;
         }
-    }
 
-    const ranks = loadRanks();
+        // =========================
+        // RANK EDITOR COMMANDS
+        // =========================
 
-    // =========================
-    // /rank
-    // =========================
+        if (
+            interaction.commandName === "setrank" ||
+            interaction.commandName === "removerank"
+        ) {
 
-    if (interaction.commandName === "rank") {
+            if (!isRankEditor(interaction)) {
 
-        const user = interaction.options.getUser("hráč");
-        const data = ranks[user.id];
+                return interaction.reply({
+                    content:
+                        "❌ Tento príkaz môže používať iba tím **Rank editor**.",
+                    ephemeral: true
+                });
+            }
+        }
 
-        if (!data) {
+        const ranks = loadRanks();
+
+        // =========================
+        // /rank
+        // =========================
+
+        if (interaction.commandName === "rank") {
+
+            const user =
+                interaction.options.getUser("hráč");
+
+            const data = ranks[user.id];
+
+            if (!data) {
+
+                const embed = new EmbedBuilder()
+
+                    .setColor(0xED4245)
+
+                    .setTitle(
+                        "❌ Rank nenájdený"
+                    )
+
+                    .setDescription(
+                        `Hráč **${user.username}** zatiaľ nemá nastavený rank.`
+                    )
+
+                    .setThumbnail(
+                        user.displayAvatarURL()
+                    );
+
+                return interaction.reply({
+                    embeds: [embed]
+                });
+            }
 
             const embed = new EmbedBuilder()
-                .setColor(0xED4245)
-                .setTitle("❌ Rank nenájdený")
-                .setDescription(
-                    `Hráč **${user.username}** zatiaľ nemá nastavený rank.`
+
+                .setColor(0x5865F2)
+
+                .setTitle(
+                    "🏆 Minecraft Rank"
                 )
-                .setThumbnail(user.displayAvatarURL());
+
+                .setThumbnail(
+                    user.displayAvatarURL()
+                )
+
+                .addFields(
+
+                    {
+                        name: "👤 Hráč",
+                        value: `<@${user.id}>`,
+                        inline: true
+                    },
+
+                    {
+                        name: "🎮 Gamemode",
+                        value: data.gamemode,
+                        inline: true
+                    },
+
+                    {
+                        name: "🏆 Rank",
+                        value: `**${data.rank}**`,
+                        inline: true
+                    },
+
+                    {
+                        name: "🧪 Testoval",
+                        value: `<@${data.tester}>`,
+                        inline: true
+                    },
+
+                    {
+                        name: "📝 Poznámka",
+                        value:
+                            data.note ||
+                            "Bez poznámky",
+                        inline: false
+                    }
+
+                )
+
+                .setFooter({
+                    text:
+                        "Minecraft Rank System"
+                })
+
+                .setTimestamp();
 
             return interaction.reply({
                 embeds: [embed]
             });
         }
 
-        const embed = new EmbedBuilder()
-            .setColor(0x5865F2)
-            .setTitle("🏆 Minecraft Rank")
-            .setThumbnail(user.displayAvatarURL())
-            .addFields(
-                {
-                    name: "👤 Hráč",
-                    value: `<@${user.id}>`,
-                    inline: true
-                },
-                {
-                    name: "🎮 Gamemode",
-                    value: data.gamemode,
-                    inline: true
-                },
-                {
-                    name: "🏆 Rank",
-                    value: `**${data.rank}**`,
-                    inline: true
-                },
-                {
-                    name: "🧪 Testoval",
-                    value: `<@${data.tester}>`,
-                    inline: true
-                },
-                {
-                    name: "📝 Poznámka",
-                    value: data.note || "Bez poznámky",
-                    inline: false
-                }
-            )
-            .setFooter({
-                text: "Minecraft Rank System"
-            })
-            .setTimestamp();
+        // =========================
+        // /setrank
+        // =========================
 
-        return interaction.reply({
-            embeds: [embed]
-        });
-    }
+        if (interaction.commandName === "setrank") {
 
-    // =========================
-    // /setrank
-    // =========================
+            const user =
+                interaction.options.getUser("hráč");
 
-    if (interaction.commandName === "setrank") {
+            const gamemode =
+                interaction.options.getString(
+                    "gamemode"
+                );
 
-        const user = interaction.options.getUser("hráč");
-        const gamemode = interaction.options.getString("gamemode");
-        const rank = interaction.options.getString("rank");
+            const rank =
+                interaction.options.getString(
+                    "rank"
+                );
 
-        const note =
-            interaction.options.getString("poznámka") ||
-            "Bez poznámky";
+            const note =
+                interaction.options.getString(
+                    "poznámka"
+                ) ||
+                "Bez poznámky";
 
-        ranks[user.id] = {
-            username: user.username,
-            gamemode: gamemode,
-            rank: rank,
-            note: note,
-            tester: interaction.user.id,
-            updatedAt: new Date().toISOString()
-        };
+            ranks[user.id] = {
 
-        saveRanks(ranks);
+                username:
+                    user.username,
 
-        const embed = new EmbedBuilder()
-            .setColor(0x57F287)
-            .setTitle("🏆 Rank test dokončený")
-            .setThumbnail(user.displayAvatarURL())
-            .addFields(
-                {
-                    name: "👤 Hráč",
-                    value: `<@${user.id}>`,
-                    inline: true
-                },
-                {
-                    name: "🎮 Gamemode",
-                    value: gamemode,
-                    inline: true
-                },
-                {
-                    name: "🏆 Rank",
-                    value: `**${rank}**`,
-                    inline: true
-                },
-                {
-                    name: "🧪 Testoval",
-                    value: `<@${interaction.user.id}>`,
-                    inline: true
-                },
-                {
-                    name: "📝 Poznámka",
-                    value: note,
-                    inline: false
-                }
-            )
-            .setFooter({
-                text: "Minecraft Rank System • Rank editor"
-            })
-            .setTimestamp();
+                gamemode:
+                    gamemode,
 
-        return interaction.reply({
-            embeds: [embed]
-        });
-    }
+                rank:
+                    rank,
 
-    // =========================
-    // /removerank
-    // =========================
+                note:
+                    note,
 
-    if (interaction.commandName === "removerank") {
+                tester:
+                    interaction.user.id,
 
-        const user = interaction.options.getUser("hráč");
+                updatedAt:
+                    new Date().toISOString()
+            };
 
-        if (!ranks[user.id]) {
+            saveRanks(ranks);
+
+            const embed =
+                new EmbedBuilder()
+
+                    .setColor(0x57F287)
+
+                    .setTitle(
+                        "🏆 Rank test dokončený"
+                    )
+
+                    .setThumbnail(
+                        user.displayAvatarURL()
+                    )
+
+                    .addFields(
+
+                        {
+                            name: "👤 Hráč",
+                            value:
+                                `<@${user.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name: "🎮 Gamemode",
+                            value:
+                                gamemode,
+                            inline: true
+                        },
+
+                        {
+                            name: "🏆 Rank",
+                            value:
+                                `**${rank}**`,
+                            inline: true
+                        },
+
+                        {
+                            name: "🧪 Testoval",
+                            value:
+                                `<@${interaction.user.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name: "📝 Poznámka",
+                            value:
+                                note,
+                            inline: false
+                        }
+
+                    )
+
+                    .setFooter({
+                        text:
+                            "Minecraft Rank System • Rank editor"
+                    })
+
+                    .setTimestamp();
 
             return interaction.reply({
-                content: "❌ Tento hráč nemá uložený rank.",
-                ephemeral: true
+                embeds: [embed]
             });
         }
 
-        delete ranks[user.id];
+        // =========================
+        // /removerank
+        // =========================
 
-        saveRanks(ranks);
+        if (
+            interaction.commandName ===
+            "removerank"
+        ) {
 
-        const embed = new EmbedBuilder()
-            .setColor(0xED4245)
-            .setTitle("🗑️ Rank odstránený")
-            .setDescription(
-                `Rank hráča **${user.username}** bol odstránený.`
-            )
-            .setThumbnail(user.displayAvatarURL());
+            const user =
+                interaction.options.getUser(
+                    "hráč"
+                );
 
-        return interaction.reply({
-            embeds: [embed]
-        });
-    }
+            if (!ranks[user.id]) {
 
-    // =========================
-    // /ranks
-    // =========================
+                return interaction.reply({
 
-    if (interaction.commandName === "ranks") {
+                    content:
+                        "❌ Tento hráč nemá uložený rank.",
 
-        const entries = Object.entries(ranks);
+                    ephemeral: true
+                });
+            }
 
-        if (entries.length === 0) {
+            delete ranks[user.id];
+
+            saveRanks(ranks);
+
+            const embed =
+                new EmbedBuilder()
+
+                    .setColor(0xED4245)
+
+                    .setTitle(
+                        "🗑️ Rank odstránený"
+                    )
+
+                    .setDescription(
+                        `Rank hráča **${user.username}** bol odstránený.`
+                    )
+
+                    .setThumbnail(
+                        user.displayAvatarURL()
+                    )
+
+                    .setTimestamp();
 
             return interaction.reply({
-                content: "📭 Zatiaľ nemá nikto nastavený rank."
+                embeds: [embed]
             });
         }
 
-        let description = "";
+        // =========================
+        // /ranks
+        // =========================
 
-        for (const [userId, data] of entries) {
+        if (
+            interaction.commandName === "ranks"
+        ) {
 
-            description +=
-                `👤 <@${userId}> — **${data.rank}** — ${data.gamemode}\n`;
+            const entries =
+                Object.entries(ranks);
+
+            if (entries.length === 0) {
+
+                return interaction.reply({
+
+                    content:
+                        "📭 Zatiaľ nemá nikto nastavený rank."
+                });
+            }
+
+            let description = "";
+
+            for (
+                const [userId, data]
+                of entries
+            ) {
+
+                description +=
+                    `👤 <@${userId}> — **${data.rank}** — ${data.gamemode}\n`;
+            }
+
+            const embed =
+                new EmbedBuilder()
+
+                    .setColor(0x5865F2)
+
+                    .setTitle(
+                        "🏆 Minecraft Ranky"
+                    )
+
+                    .setDescription(
+                        description
+                    )
+
+                    .setFooter({
+                        text:
+                            `Počet hráčov: ${entries.length}`
+                    })
+
+                    .setTimestamp();
+
+            return interaction.reply({
+                embeds: [embed]
+            });
         }
-
-        const embed = new EmbedBuilder()
-            .setColor(0x5865F2)
-            .setTitle("🏆 Minecraft Ranky")
-            .setDescription(description)
-            .setFooter({
-                text: `Počet hráčov: ${entries.length}`
-            })
-            .setTimestamp();
-
-        return interaction.reply({
-            embeds: [embed]
-        });
     }
-});
+);
 
 // =========================
 // START
 // =========================
 
 if (!TOKEN) {
-    console.error("❌ DISCORD_TOKEN nie je nastavený!");
+
+    console.error(
+        "❌ DISCORD_TOKEN nie je nastavený!"
+    );
+
     process.exit(1);
 }
 
 registerCommands();
+
 client.login(TOKEN);
+      
