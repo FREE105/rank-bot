@@ -11,7 +11,7 @@ const {
 } = require("discord.js");
 
 // ======================================================
-// SETTINGS
+// NASTAVENIA
 // ======================================================
 
 const TOKEN = process.env.DISCORD_TOKEN;
@@ -20,7 +20,6 @@ const CLIENT_ID = "1535739014760632330";
 const RANK_EDITOR_ROLE = "Rank editor";
 
 const PORT = process.env.PORT || 3000;
-
 const DB_FILE = "./ranks.json";
 
 // ======================================================
@@ -32,7 +31,7 @@ http.createServer((req, res) => {
         "Content-Type": "text/plain; charset=utf-8"
     });
 
-    res.end("Rank Bot is online!");
+    res.end("CZ/SK/EN Rank Bot is online!");
 }).listen(PORT, "0.0.0.0", () => {
     console.log(`Web server beží na porte ${PORT}`);
 });
@@ -41,13 +40,17 @@ http.createServer((req, res) => {
 // DATABASE
 // ======================================================
 
+function createDatabase() {
+    return {
+        players: {},
+        history: []
+    };
+}
+
 if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(
         DB_FILE,
-        JSON.stringify({
-            players: {},
-            history: []
-        }, null, 2)
+        JSON.stringify(createDatabase(), null, 2)
     );
 }
 
@@ -57,16 +60,12 @@ function loadDatabase() {
             fs.readFileSync(DB_FILE, "utf8")
         );
 
-        if (!data.players) data.players = [];
+        if (!data.players) data.players = {};
         if (!data.history) data.history = [];
 
         return data;
-
     } catch {
-        return {
-            players: {},
-            history: []
-        };
+        return createDatabase();
     }
 }
 
@@ -88,7 +87,7 @@ const client = new Client({
 });
 
 // ======================================================
-// RANK OPTIONS
+// RANKY
 // ======================================================
 
 const rankChoices = [
@@ -106,36 +105,14 @@ const rankChoices = [
 ];
 
 // ======================================================
-// GAMEMODE OPTIONS
-// ======================================================
-
-const gamemodeChoices = [
-    { name: "BedWars", value: "BedWars" },
-    { name: "Bridges", value: "Bridges" },
-    { name: "Boxing", value: "Boxing" },
-    { name: "Clutch", value: "Clutch" },
-    { name: "Combo", value: "Combo" },
-    { name: "Crystal PvP", value: "Crystal PvP" },
-    { name: "Diamond", value: "Diamond" },
-    { name: "Factions", value: "Factions" },
-    { name: "KitPvP", value: "KitPvP" },
-    { name: "NoDebuff", value: "NoDebuff" },
-    { name: "PotPvP", value: "PotPvP" },
-    { name: "SkyWars", value: "SkyWars" },
-    { name: "Survival Games", value: "Survival Games" },
-    { name: "UHC", value: "UHC" },
-    { name: "Other", value: "Other" }
-];
-
-// ======================================================
 // SLASH COMMANDS
 // ======================================================
 
 const commands = [
 
-    // --------------------------------------------------
+    // ==================================================
     // /rank
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("rank")
@@ -148,9 +125,9 @@ const commands = [
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
+    // ==================================================
     // /setrank
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("setrank")
@@ -159,16 +136,15 @@ const commands = [
         .addUserOption(option =>
             option
                 .setName("hráč")
-                .setDescription("Vyber hráča")
+                .setDescription("Hráč, ktorému nastavuješ rank")
                 .setRequired(true)
         )
 
         .addStringOption(option =>
             option
                 .setName("gamemode")
-                .setDescription("Vyber gamemode")
+                .setDescription("Napíš ľubovoľný gamemode")
                 .setRequired(true)
-                .addChoices(...gamemodeChoices)
         )
 
         .addStringOption(option =>
@@ -191,11 +167,55 @@ const commands = [
                 .setName("poznámka")
                 .setDescription("Poznámka k testu")
                 .setRequired(false)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("dôkaz")
+                .setDescription("Link na video alebo screenshot")
+                .setRequired(false)
+        )
+
+        .addIntegerOption(option =>
+            option
+                .setName("hodnotenie")
+                .setDescription("Hodnotenie testu od 1 do 10")
+                .setMinValue(1)
+                .setMaxValue(10)
+                .setRequired(false)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("subrank")
+                .setDescription("Ľubovoľný subrank")
+                .setRequired(false)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("tag")
+                .setDescription("Vlastný tag")
+                .setRequired(false)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("komentar")
+                .setDescription("Dodatočný komentár")
+                .setRequired(false)
+        )
+
+        .addBooleanOption(option =>
+            option
+                .setName("verified")
+                .setDescription("Je test overený?")
+                .setRequired(false)
         ),
 
-    // --------------------------------------------------
+    // ==================================================
     // /removerank
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("removerank")
@@ -208,29 +228,29 @@ const commands = [
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
+    // ==================================================
     // /ranks
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("ranks")
-        .setDescription("Zobrazí všetkých hráčov s rankom"),
+        .setDescription("Zobrazí všetky uložené ranky"),
 
-    // --------------------------------------------------
+    // ==================================================
     // /top
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("top")
-        .setDescription("Zobrazí najvyššie ranky"),
+        .setDescription("Zobrazí TOP ranky"),
 
-    // --------------------------------------------------
+    // ==================================================
     // /history
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("history")
-        .setDescription("Zobrazí históriu testov hráča")
+        .setDescription("Zobrazí históriu testov")
 
         .addUserOption(option =>
             option
@@ -239,18 +259,49 @@ const commands = [
                 .setRequired(true)
         ),
 
-    // --------------------------------------------------
+    // ==================================================
     // /stats
-    // --------------------------------------------------
+    // ==================================================
 
     new SlashCommandBuilder()
         .setName("stats")
-        .setDescription("Zobrazí štatistiky rank systému")
+        .setDescription("Zobrazí štatistiky rank systému"),
+
+    // ==================================================
+    // /myrank
+    // ==================================================
+
+    new SlashCommandBuilder()
+        .setName("myrank")
+        .setDescription("Zobrazí tvoj vlastný rank"),
+
+    // ==================================================
+    // /searchrank
+    // ==================================================
+
+    new SlashCommandBuilder()
+        .setName("searchrank")
+        .setDescription("Vyhľadá hráča podľa mena")
+
+        .addStringOption(option =>
+            option
+                .setName("meno")
+                .setDescription("Používateľské meno")
+                .setRequired(true)
+        ),
+
+    // ==================================================
+    // /rankinfo
+    // ==================================================
+
+    new SlashCommandBuilder()
+        .setName("rankinfo")
+        .setDescription("Zobrazí informácie o všetkých rankoch")
 
 ].map(command => command.toJSON());
 
 // ======================================================
-// REGISTER SLASH COMMANDS
+// REGISTRÁCIA PRÍKAZOV
 // ======================================================
 
 const rest = new REST({
@@ -284,7 +335,7 @@ async function registerCommands() {
 }
 
 // ======================================================
-// RANK EDITOR CHECK
+// RANK EDITOR
 // ======================================================
 
 function isRankEditor(interaction) {
@@ -305,7 +356,7 @@ function isRankEditor(interaction) {
 }
 
 // ======================================================
-// RANK VALUE
+// HODNOTA RANKU
 // ======================================================
 
 function rankValue(rank) {
@@ -363,7 +414,7 @@ client.on(
         }
 
         // ==================================================
-        // RANK EDITOR COMMANDS
+        // RANK EDITOR CHECK
         // ==================================================
 
         if (
@@ -401,27 +452,26 @@ client.on(
 
             if (!data) {
 
-                const embed =
-                    new EmbedBuilder()
-
-                        .setColor(0xED4245)
-
-                        .setTitle(
-                            "❌ Rank nenájdený"
-                        )
-
-                        .setDescription(
-                            `Hráč **${user.username}** zatiaľ nemá nastavený rank.`
-                        )
-
-                        .setThumbnail(
-                            user.displayAvatarURL()
-                        )
-
-                        .setTimestamp();
-
                 return interaction.reply({
-                    embeds: [embed]
+
+                    embeds: [
+
+                        new EmbedBuilder()
+
+                            .setColor(0xED4245)
+
+                            .setTitle(
+                                "❌ Rank nenájdený"
+                            )
+
+                            .setDescription(
+                                `Hráč **${user.username}** nemá uložený rank.`
+                            )
+
+                            .setThumbnail(
+                                user.displayAvatarURL()
+                            )
+                    ]
                 });
             }
 
@@ -431,7 +481,7 @@ client.on(
                     .setColor(0x5865F2)
 
                     .setTitle(
-                        "🏆 Minecraft Rank"
+                        `🏆 Rank — ${user.username}`
                     )
 
                     .setThumbnail(
@@ -462,9 +512,34 @@ client.on(
                         },
 
                         {
-                            name: "🧪 Testoval",
+                            name: "🧪 Tester",
                             value:
                                 `<@${data.tester}>`,
+                            inline: true
+                        },
+
+                        {
+                            name: "⭐ Hodnotenie",
+                            value:
+                                data.hodnotenie
+                                    ? `${data.hodnotenie}/10`
+                                    : "Neuvedené",
+                            inline: true
+                        },
+
+                        {
+                            name: "🏷️ Tag",
+                            value:
+                                data.tag ||
+                                "Žiadny",
+                            inline: true
+                        },
+
+                        {
+                            name: "🎯 Subrank",
+                            value:
+                                data.subrank ||
+                                "Žiadny",
                             inline: true
                         },
 
@@ -477,11 +552,27 @@ client.on(
                         },
 
                         {
-                            name: "📅 Test",
+                            name: "💬 Komentár",
                             value:
-                                `<t:${Math.floor(
-                                    new Date(data.updatedAt).getTime() / 1000
-                                )}:R>`,
+                                data.komentar ||
+                                "Žiadny",
+                            inline: false
+                        },
+
+                        {
+                            name: "🔗 Dôkaz",
+                            value:
+                                data.dokaz ||
+                                "Žiadny",
+                            inline: false
+                        },
+
+                        {
+                            name: "✅ Overené",
+                            value:
+                                data.verified
+                                    ? "Áno"
+                                    : "Nie",
                             inline: true
                         }
 
@@ -496,6 +587,50 @@ client.on(
 
             return interaction.reply({
                 embeds: [embed]
+            });
+        }
+
+        // ==================================================
+        // /myrank
+        // ==================================================
+
+        if (
+            interaction.commandName === "myrank"
+        ) {
+
+            const data =
+                db.players[interaction.user.id];
+
+            if (!data) {
+
+                return interaction.reply({
+                    content:
+                        "❌ Nemáš uložený rank."
+                });
+            }
+
+            return interaction.reply({
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0x5865F2)
+
+                        .setTitle(
+                            "🏆 Tvoj rank"
+                        )
+
+                        .setDescription(
+                            `**${data.rank}** — ${data.gamemode}`
+                        )
+
+                        .setThumbnail(
+                            interaction.user.displayAvatarURL()
+                        )
+
+                        .setTimestamp()
+                ]
             });
         }
 
@@ -537,10 +672,49 @@ client.on(
                 ) ||
                 "Bez poznámky";
 
+            const dokaz =
+                interaction.options.getString(
+                    "dôkaz"
+                ) ||
+                "";
+
+            const hodnotenie =
+                interaction.options.getInteger(
+                    "hodnotenie"
+                );
+
+            const subrank =
+                interaction.options.getString(
+                    "subrank"
+                ) ||
+                "";
+
+            const tag =
+                interaction.options.getString(
+                    "tag"
+                ) ||
+                "";
+
+            const komentar =
+                interaction.options.getString(
+                    "komentar"
+                ) ||
+                "";
+
+            const verifiedOption =
+                interaction.options.getBoolean(
+                    "verified"
+                );
+
+            const verified =
+                verifiedOption === null
+                    ? false
+                    : verifiedOption;
+
             const oldData =
                 db.players[user.id];
 
-            db.players[user.id] = {
+            const newData = {
 
                 username:
                     user.username,
@@ -551,15 +725,36 @@ client.on(
                 rank:
                     rank,
 
+                tester:
+                    tester.id,
+
                 note:
                     note,
 
-                tester:
-                    tester.id,
+                dokaz:
+                    dokaz,
+
+                hodnotenie:
+                    hodnotenie,
+
+                subrank:
+                    subrank,
+
+                tag:
+                    tag,
+
+                komentar:
+                    komentar,
+
+                verified:
+                    verified,
 
                 updatedAt:
                     new Date().toISOString()
             };
+
+            db.players[user.id] =
+                newData;
 
             // ==================================================
             // HISTORY
@@ -585,13 +780,16 @@ client.on(
                 note:
                     note,
 
+                hodnotenie:
+                    hodnotenie,
+
+                date:
+                    new Date().toISOString(),
+
                 previousRank:
                     oldData
                         ? oldData.rank
-                        : null,
-
-                date:
-                    new Date().toISOString()
+                        : null
             });
 
             saveDatabase(db);
@@ -635,9 +833,34 @@ client.on(
                         },
 
                         {
-                            name: "🧪 Testoval",
+                            name: "🧪 Tester",
                             value:
                                 `<@${tester.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name: "⭐ Hodnotenie",
+                            value:
+                                hodnotenie
+                                    ? `${hodnotenie}/10`
+                                    : "Neuvedené",
+                            inline: true
+                        },
+
+                        {
+                            name: "🏷️ Tag",
+                            value:
+                                tag ||
+                                "Žiadny",
+                            inline: true
+                        },
+
+                        {
+                            name: "🎯 Subrank",
+                            value:
+                                subrank ||
+                                "Žiadny",
                             inline: true
                         },
 
@@ -646,6 +869,31 @@ client.on(
                             value:
                                 note,
                             inline: false
+                        },
+
+                        {
+                            name: "💬 Komentár",
+                            value:
+                                komentar ||
+                                "Žiadny",
+                            inline: false
+                        },
+
+                        {
+                            name: "🔗 Dôkaz",
+                            value:
+                                dokaz ||
+                                "Žiadny",
+                            inline: false
+                        },
+
+                        {
+                            name: "✅ Overené",
+                            value:
+                                verified
+                                    ? "Áno"
+                                    : "Nie",
+                            inline: true
                         },
 
                         {
@@ -700,27 +948,28 @@ client.on(
 
             saveDatabase(db);
 
-            const embed =
-                new EmbedBuilder()
-
-                    .setColor(0xED4245)
-
-                    .setTitle(
-                        "🗑️ Rank odstránený"
-                    )
-
-                    .setDescription(
-                        `Rank hráča **${user.username}** bol odstránený.`
-                    )
-
-                    .setThumbnail(
-                        user.displayAvatarURL()
-                    )
-
-                    .setTimestamp();
-
             return interaction.reply({
-                embeds: [embed]
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0xED4245)
+
+                        .setTitle(
+                            "🗑️ Rank odstránený"
+                        )
+
+                        .setDescription(
+                            `Rank hráča **${user.username}** bol odstránený.`
+                        )
+
+                        .setThumbnail(
+                            user.displayAvatarURL()
+                        )
+
+                        .setTimestamp()
+                ]
             });
         }
 
@@ -729,8 +978,7 @@ client.on(
         // ==================================================
 
         if (
-            interaction.commandName ===
-            "ranks"
+            interaction.commandName === "ranks"
         ) {
 
             const entries =
@@ -738,61 +986,54 @@ client.on(
                     db.players
                 );
 
-            if (
-                entries.length === 0
-            ) {
+            if (!entries.length) {
 
                 return interaction.reply({
-
                     content:
-                        "📭 Zatiaľ nemá nikto nastavený rank."
+                        "📭 Zatiaľ nie sú uložené žiadne ranky."
                 });
             }
 
-            const sorted =
-                entries.sort(
-                    (a, b) =>
-                        rankValue(
-                            b[1].rank
-                        ) -
-                        rankValue(
-                            a[1].rank
-                        )
-                );
+            entries.sort(
+                (a, b) =>
+                    rankValue(b[1].rank) -
+                    rankValue(a[1].rank)
+            );
 
             let description = "";
 
             for (
-                const [userId, data]
-                of sorted
+                const [id, data]
+                of entries.slice(0, 30)
             ) {
 
                 description +=
-                    `👤 <@${userId}> — **${data.rank}** — ${data.gamemode}\n`;
+                    `👤 <@${id}> — **${data.rank}** — ${data.gamemode}\n`;
             }
 
-            const embed =
-                new EmbedBuilder()
-
-                    .setColor(0x5865F2)
-
-                    .setTitle(
-                        "🏆 Minecraft Ranky"
-                    )
-
-                    .setDescription(
-                        description
-                    )
-
-                    .setFooter({
-                        text:
-                            `Počet hráčov: ${entries.length}`
-                    })
-
-                    .setTimestamp();
-
             return interaction.reply({
-                embeds: [embed]
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0x5865F2)
+
+                        .setTitle(
+                            "🏆 Minecraft Ranky"
+                        )
+
+                        .setDescription(
+                            description
+                        )
+
+                        .setFooter({
+                            text:
+                                `Hráčov: ${entries.length}`
+                        })
+
+                        .setTimestamp()
+                ]
             });
         }
 
@@ -801,8 +1042,7 @@ client.on(
         // ==================================================
 
         if (
-            interaction.commandName ===
-            "top"
+            interaction.commandName === "top"
         ) {
 
             const entries =
@@ -810,55 +1050,51 @@ client.on(
                     db.players
                 );
 
-            const sorted =
-                entries.sort(
-                    (a, b) =>
-                        rankValue(
-                            b[1].rank
-                        ) -
-                        rankValue(
-                            a[1].rank
-                        )
-                );
+            entries.sort(
+                (a, b) =>
+                    rankValue(b[1].rank) -
+                    rankValue(a[1].rank)
+            );
 
             const top =
-                sorted.slice(0, 10);
+                entries.slice(0, 10);
 
-            if (top.length === 0) {
+            if (!top.length) {
 
                 return interaction.reply({
                     content:
-                        "📭 Zatiaľ nemá nikto rank."
+                        "📭 Zatiaľ nie sú žiadne ranky."
                 });
             }
 
             let description = "";
 
             top.forEach(
-                ([userId, data], index) => {
+                ([id, data], index) => {
 
                     description +=
-                        `**${index + 1}.** <@${userId}> — **${data.rank}** — ${data.gamemode}\n`;
+                        `**${index + 1}.** <@${id}> — **${data.rank}** — ${data.gamemode}\n`;
                 }
             );
 
-            const embed =
-                new EmbedBuilder()
-
-                    .setColor(0xFEE75C)
-
-                    .setTitle(
-                        "🏆 TOP Ranky"
-                    )
-
-                    .setDescription(
-                        description
-                    )
-
-                    .setTimestamp();
-
             return interaction.reply({
-                embeds: [embed]
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0xFEE75C)
+
+                        .setTitle(
+                            "🏆 TOP 10"
+                        )
+
+                        .setDescription(
+                            description
+                        )
+
+                        .setTimestamp()
+                ]
             });
         }
 
@@ -879,63 +1115,68 @@ client.on(
             const history =
                 db.history
                     .filter(
-                        entry =>
-                            entry.player ===
+                        item =>
+                            item.player ===
                             user.id
                     )
                     .slice(-10)
                     .reverse();
 
-            if (
-                history.length === 0
-            ) {
+            if (!history.length) {
 
                 return interaction.reply({
-
                     content:
-                        "📭 Tento hráč zatiaľ nemá históriu testov."
+                        "📭 Tento hráč nemá históriu."
                 });
             }
 
             let description = "";
 
             history.forEach(
-                entry => {
+                item => {
 
                     description +=
-                        `🏆 **${entry.rank}** — ${entry.gamemode} — <@${entry.tester}>\n`;
+                        `🏆 **${item.rank}** — ${item.gamemode}\n`;
 
                     description +=
-                        `📝 ${entry.note}\n\n`;
+                        `🧪 Tester: <@${item.tester}>\n`;
+
+                    if (item.hodnotenie) {
+                        description +=
+                            `⭐ ${item.hodnotenie}/10\n`;
+                    }
+
+                    description += "\n";
                 }
             );
 
-            const embed =
-                new EmbedBuilder()
-
-                    .setColor(0x5865F2)
-
-                    .setTitle(
-                        `📜 História — ${user.username}`
-                    )
-
-                    .setDescription(
-                        description
-                    )
-
-                    .setThumbnail(
-                        user.displayAvatarURL()
-                    )
-
-                    .setFooter({
-                        text:
-                            "Posledných 10 testov"
-                    })
-
-                    .setTimestamp();
-
             return interaction.reply({
-                embeds: [embed]
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0x5865F2)
+
+                        .setTitle(
+                            `📜 História — ${user.username}`
+                        )
+
+                        .setDescription(
+                            description
+                        )
+
+                        .setThumbnail(
+                            user.displayAvatarURL()
+                        )
+
+                        .setFooter({
+                            text:
+                                "Posledných 10 testov"
+                        })
+
+                        .setTimestamp()
+                ]
             });
         }
 
@@ -944,8 +1185,7 @@ client.on(
         // ==================================================
 
         if (
-            interaction.commandName ===
-            "stats"
+            interaction.commandName === "stats"
         ) {
 
             const players =
@@ -953,75 +1193,188 @@ client.on(
                     db.players
                 );
 
-            const totalTests =
-                db.history.length;
+            const counts = {};
 
-            const rankCounts = {};
+            players.forEach(
+                player => {
 
-            for (
-                const player
-                of players
-            ) {
-
-                rankCounts[player.rank] =
-                    (rankCounts[player.rank] || 0) + 1;
-            }
+                    counts[player.rank] =
+                        (counts[player.rank] || 0) + 1;
+                }
+            );
 
             let rankList = "";
 
-            for (
-                const rank of rankChoices
-            ) {
+            rankChoices.forEach(
+                rank => {
 
-                const count =
-                    rankCounts[rank.value] ||
-                    0;
-
-                rankList +=
-                    `**${rank.value}:** ${count}\n`;
-            }
-
-            const embed =
-                new EmbedBuilder()
-
-                    .setColor(0x5865F2)
-
-                    .setTitle(
-                        "📊 Rank System Stats"
-                    )
-
-                    .addFields(
-
-                        {
-                            name:
-                                "👥 Hráči",
-                            value:
-                                `${players.length}`,
-                            inline: true
-                        },
-
-                        {
-                            name:
-                                "🧪 Testy",
-                            value:
-                                `${totalTests}`,
-                            inline: true
-                        },
-
-                        {
-                            name:
-                                "🏆 Ranky",
-                            value:
-                                rankList,
-                            inline: false
-                        }
-
-                    )
-
-                    .setTimestamp();
+                    rankList +=
+                        `**${rank.value}:** ${counts[rank.value] || 0}\n`;
+                }
+            );
 
             return interaction.reply({
-                embeds: [embed]
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0x5865F2)
+
+                        .setTitle(
+                            "📊 Rank System Stats"
+                        )
+
+                        .addFields(
+
+                            {
+                                name:
+                                    "👥 Hráči",
+                                value:
+                                    `${players.length}`,
+                                inline: true
+                            },
+
+                            {
+                                name:
+                                    "🧪 Celkovo testov",
+                                value:
+                                    `${db.history.length}`,
+                                inline: true
+                            },
+
+                            {
+                                name:
+                                    "🏆 Ranky",
+                                value:
+                                    rankList,
+                                inline: false
+                            }
+
+                        )
+
+                        .setTimestamp()
+                ]
+            });
+        }
+
+        // ==================================================
+        // /searchrank
+        // ==================================================
+
+        if (
+            interaction.commandName ===
+            "searchrank"
+        ) {
+
+            const search =
+                interaction.options
+                    .getString("meno")
+                    .toLowerCase();
+
+            const results =
+                Object.entries(
+                    db.players
+                )
+                .filter(
+                    ([id, data]) =>
+                        data.username
+                            .toLowerCase()
+                            .includes(search)
+                )
+                .slice(0, 10);
+
+            if (!results.length) {
+
+                return interaction.reply({
+                    content:
+                        "❌ Žiadny hráč nebol nájdený."
+                });
+            }
+
+            let description = "";
+
+            results.forEach(
+                ([id, data]) => {
+
+                    description +=
+                        `👤 <@${id}> — **${data.rank}** — ${data.gamemode}\n`;
+                }
+            );
+
+            return interaction.reply({
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0x5865F2)
+
+                        .setTitle(
+                            "🔎 Výsledky vyhľadávania"
+                        )
+
+                        .setDescription(
+                            description
+                        )
+
+                        .setTimestamp()
+                ]
+            });
+        }
+
+        // ==================================================
+        // /rankinfo
+        // ==================================================
+
+        if (
+            interaction.commandName ===
+            "rankinfo"
+        ) {
+
+            return interaction.reply({
+
+                embeds: [
+
+                    new EmbedBuilder()
+
+                        .setColor(0x5865F2)
+
+                        .setTitle(
+                            "🏆 Rank System"
+                        )
+
+                        .setDescription(
+                            "Dostupné ranky:"
+                        )
+
+                        .addFields(
+
+                            {
+                                name: "🟢 LT",
+                                value:
+                                    "LT1 • LT2 • LT3 • LT4 • LT5",
+                                inline: false
+                            },
+
+                            {
+                                name: "🔵 HT",
+                                value:
+                                    "HT1 • HT2 • HT3 • HT4 • HT5",
+                                inline: false
+                            },
+
+                            {
+                                name: "🔐 Rank editor",
+                                value:
+                                    "Iba členovia s rolou **Rank editor** môžu používať `/setrank` a `/removerank`.",
+                                inline: false
+                            }
+
+                        )
+
+                        .setTimestamp()
+                ]
             });
         }
     }
