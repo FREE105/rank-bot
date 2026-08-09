@@ -499,6 +499,11 @@ client.login(TOKEN)
     console.log("🔐 Discord login OK");
   })
   .catch(error => {
-    console.error("❌ Discord login zlyhal:");
-    console.error(error);
+    console.error("❌ Discord login zlyhal:", error);
   });
+
+setTimeout(() => {
+  console.error("⏰ Discord login trvá príliš dlho.");
+  console.error("Skontroluj DISCORD_TOKEN a pripojenie k Discordu.");
+  process.exit(1);
+}, 30000);
