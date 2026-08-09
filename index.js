@@ -1,4 +1,3 @@
-
 const {
     Client,
     GatewayIntentBits,
@@ -11,36 +10,25 @@ const {
 
 const http = require("http");
 
+// ======================================================
+// CONFIG
+// ======================================================
+
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID || "1535739014760632330";
 
 if (!TOKEN) {
-    console.error("CHYBA: DISCORD_TOKEN nie je nastaveny!");
+    console.error("CHYBA: DISCORD_TOKEN nie je nastavený!");
     process.exit(1);
 }
+
+// ======================================================
+// CLIENT
+// ======================================================
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
-
-
-// ======================================================
-// RANKY
-// ======================================================
-
-const RANKS = [
-    "LT1",
-    "LT2",
-    "LT3",
-    "LT4",
-    "LT5",
-    "HT1",
-    "HT2",
-    "HT3",
-    "HT4",
-    "HT5"
-];
-
 
 // ======================================================
 // EMBED STYLY
@@ -48,146 +36,155 @@ const RANKS = [
 
 const STYLES = {
     aurora: {
-        name: "Polarna ziara",
+        name: "Polárna žiara",
         emoji: "🌌",
         color: 0x57F287,
-        description: "Aurora Borealis"
+        image: "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif"
     },
 
     snow: {
-        name: "Snezenie",
+        name: "Sneženie",
         emoji: "❄️",
         color: 0xDDEEFF,
-        description: "Zimna snehova atmosfera"
+        image: "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif"
     },
 
     fire: {
-        name: "Ohen",
+        name: "Oheň",
         emoji: "🔥",
         color: 0xFF4500,
-        description: "Horuca ohniva atmosfera"
+        image: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif"
     },
 
     ice: {
-        name: "Lad",
+        name: "Ľad",
         emoji: "🧊",
         color: 0x00BFFF,
-        description: "Mraziva ladova atmosfera"
+        image: "https://media.giphy.com/media/3o6Zt6D5rGQ2g/giphy.gif"
     },
 
     ocean: {
-        name: "Ocean",
+        name: "Oceán",
         emoji: "🌊",
         color: 0x0077FF,
-        description: "Deep Ocean"
+        image: "https://media.giphy.com/media/l0MYKDrP3gZqFN8kE/giphy.gif"
     },
 
     space: {
         name: "Vesmír",
         emoji: "🚀",
         color: 0x6C5CE7,
-        description: "Deep Space"
+        image: "https://media.giphy.com/media/3o7TKsWZbQJjQ/giphy.gif"
     },
 
     galaxy: {
         name: "Galaxia",
         emoji: "🌠",
         color: 0x9B59B6,
-        description: "Galaxy"
+        image: "https://media.giphy.com/media/3o7TKsQ1l/giphy.gif"
     },
 
     sunset: {
-        name: "Zapad slnka",
+        name: "Západ slnka",
         emoji: "🌅",
         color: 0xFF7675,
-        description: "Golden Sunset"
+        image: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif"
     },
 
     storm: {
         name: "Búrka",
         emoji: "⛈️",
         color: 0x5865F2,
-        description: "Thunderstorm"
+        image: "https://media.giphy.com/media/3o7TKBurg/giphy.gif"
     },
 
     rainbow: {
-        name: "Duha",
+        name: "Dúha",
         emoji: "🌈",
         color: 0xFF69B4,
-        description: "Rainbow"
+        image: "https://media.giphy.com/media/26tOZ42Mg6pbTUPHW/giphy.gif"
     },
 
     forest: {
         name: "Les",
         emoji: "🌲",
         color: 0x228B22,
-        description: "Deep Forest"
+        image: "https://media.giphy.com/media/3o7TKU8RvQuomFfUUU/giphy.gif"
     },
 
     desert: {
-        name: "Pust",
+        name: "Púšť",
         emoji: "🏜️",
         color: 0xE6A23C,
-        description: "Desert"
+        image: "https://media.giphy.com/media/3o7TKqg/giphy.gif"
     },
 
     volcano: {
         name: "Sopka",
         emoji: "🌋",
         color: 0xC0392B,
-        description: "Volcano"
+        image: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif"
     },
 
     toxic: {
         name: "Toxic",
         emoji: "☢️",
         color: 0xA3FF12,
-        description: "Toxic Zone"
+        image: "https://media.giphy.com/media/3o7TKMGpxx/giphy.gif"
     },
 
     cyber: {
         name: "Cyber",
         emoji: "💻",
         color: 0x00FFCC,
-        description: "Cyber"
+        image: "https://media.giphy.com/media/26tn33ai0/giphy.gif"
     },
 
     blood: {
         name: "Blood",
         emoji: "🩸",
         color: 0x8B0000,
-        description: "Dark Blood"
+        image: "https://media.giphy.com/media/3o7TKxV/giphy.gif"
     },
 
     shadow: {
         name: "Shadow",
         emoji: "🌑",
         color: 0x202020,
-        description: "Dark Shadow"
+        image: "https://media.giphy.com/media/3o7TKxV/giphy.gif"
     },
 
     diamond: {
         name: "Diamant",
         emoji: "💎",
         color: 0x00FFFF,
-        description: "Diamond"
+        image: "https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif"
     },
 
     gold: {
         name: "Gold",
         emoji: "🏆",
         color: 0xFFD700,
-        description: "Golden"
+        image: "https://media.giphy.com/media/3o7TKMef/giphy.gif"
     },
 
     minecraft: {
         name: "Minecraft",
         emoji: "⛏️",
         color: 0x55AA55,
-        description: "Minecraft"
+        image: "https://media.giphy.com/media/3o7TKz9b/giphy.gif"
     }
 };
 
+// ======================================================
+// COMMAND HELPERS
+// ======================================================
+
+function adminCommand(command) {
+    return command.setDefaultMemberPermissions(
+        PermissionFlagsBits.Administrator.toString()
+    );
+}
 
 // ======================================================
 // COMMANDS
@@ -195,143 +192,138 @@ const STYLES = {
 
 const commands = [];
 
-// ADDRANK
+// ======================================================
+// /addrank
+// ======================================================
 
 commands.push(
-    new SlashCommandBuilder()
-        .setName("addrank")
-        .setDescription("Prida hracovi rank")
-        .setDefaultMemberPermissions(
-            PermissionFlagsBits.Administrator.toString()
-        )
-        .addUserOption(function(option) {
-            return option
-                .setName("hrac")
-                .setDescription("Hrac")
-                .setRequired(true);
-        })
-        .addStringOption(function(option) {
-            return option
-                .setName("gamemode")
-                .setDescription("Napis lubovolny gamemode")
-                .setRequired(true)
-                .setMaxLength(100);
-        })
-        .addStringOption(function(option) {
-            return option
-                .setName("rank")
-                .setDescription("Vyber rank")
-                .setRequired(true)
-                .addChoices(
-                    { name: "LT1", value: "LT1" },
-                    { name: "LT2", value: "LT2" },
-                    { name: "LT3", value: "LT3" },
-                    { name: "LT4", value: "LT4" },
-                    { name: "LT5", value: "LT5" },
-                    { name: "HT1", value: "HT1" },
-                    { name: "HT2", value: "HT2" },
-                    { name: "HT3", value: "HT3" },
-                    { name: "HT4", value: "HT4" },
-                    { name: "HT5", value: "HT5" }
-                );
-        })
-        .addStringOption(function(option) {
-            return option
-                .setName("poznamka")
-                .setDescription("Volitelna poznamka")
-                .setRequired(false)
-                .setMaxLength(1000);
-        })
-        .addStringOption(function(option) {
-            return option
-                .setName("status")
-                .setDescription("Vysledok testu")
-                .setRequired(false)
-                .addChoices(
-                    {
-                        name: "Rank UP",
-                        value: "UP"
-                    },
-                    {
-                        name: "Rank DOWN",
-                        value: "DOWN"
-                    },
-                    {
-                        name: "Bez zmeny",
-                        value: "SAME"
-                    }
-                );
-        })
+    adminCommand(
+        new SlashCommandBuilder()
+            .setName("addrank")
+            .setDescription("Pridá hráčovi rank")
+            .addUserOption(option =>
+                option
+                    .setName("hráč")
+                    .setDescription("Hráč")
+                    .setRequired(true)
+            )
+            .addStringOption(option =>
+                option
+                    .setName("gamemode")
+                    .setDescription("Ľubovoľný gamemode")
+                    .setRequired(true)
+                    .setMaxLength(100)
+            )
+            .addStringOption(option =>
+                option
+                    .setName("previous_rank")
+                    .setDescription("Predchádzajúci rank")
+                    .setRequired(true)
+                    .setMaxLength(50)
+            )
+            .addStringOption(option =>
+                option
+                    .setName("new_rank")
+                    .setDescription("Nový rank")
+                    .setRequired(true)
+                    .setMaxLength(50)
+            )
+            .addStringOption(option =>
+                option
+                    .setName("status")
+                    .setDescription("Výsledok testu")
+                    .setRequired(false)
+                    .addChoices(
+                        {
+                            name: "🟢 Rank UP",
+                            value: "UP"
+                        },
+                        {
+                            name: "🔴 Rank DOWN",
+                            value: "DOWN"
+                        },
+                        {
+                            name: "⚪ Bez zmeny",
+                            value: "SAME"
+                        }
+                    )
+            )
+            .addStringOption(option =>
+                option
+                    .setName("poznámka")
+                    .setDescription("Voliteľná poznámka")
+                    .setRequired(false)
+                    .setMaxLength(1000)
+            )
+    )
 );
 
+// ======================================================
+// /embed
+// ======================================================
 
-// EMBED
-
-const embedCommand = new SlashCommandBuilder()
-    .setName("embed")
-    .setDescription("Vytvori stylovy embed")
-    .setDefaultMemberPermissions(
-        PermissionFlagsBits.Administrator.toString()
-    )
-    .addUserOption(function(option) {
-        return option
-            .setName("hrac")
-            .setDescription("Hrac")
-            .setRequired(true);
-    })
-    .addStringOption(function(option) {
-        return option
-            .setName("styl")
-            .setDescription("Vyber styl")
-            .setRequired(true);
-    })
-    .addStringOption(function(option) {
-        return option
-            .setName("text")
-            .setDescription("Volitelny text")
-            .setRequired(false)
-            .setMaxLength(1000);
-    });
-
-
-// EMBED CHOICES
-
-embedCommand.options[1].addChoices(
-    { name: "🌌 Polarna ziara", value: "aurora" },
-    { name: "❄️ Snezenie", value: "snow" },
-    { name: "🔥 Ohen", value: "fire" },
-    { name: "🧊 Lad", value: "ice" },
-    { name: "🌊 Ocean", value: "ocean" },
-    { name: "🚀 Vesmír", value: "space" },
-    { name: "🌠 Galaxia", value: "galaxy" },
-    { name: "🌅 Zapad slnka", value: "sunset" },
-    { name: "⛈️ Búrka", value: "storm" },
-    { name: "🌈 Duha", value: "rainbow" },
-    { name: "🌲 Les", value: "forest" },
-    { name: "🏜️ Pust", value: "desert" },
-    { name: "🌋 Sopka", value: "volcano" },
-    { name: "☢️ Toxic", value: "toxic" },
-    { name: "💻 Cyber", value: "cyber" },
-    { name: "🩸 Blood", value: "blood" },
-    { name: "🌑 Shadow", value: "shadow" },
-    { name: "💎 Diamant", value: "diamond" },
-    { name: "🏆 Gold", value: "gold" },
-    { name: "⛏️ Minecraft", value: "minecraft" }
+const embedCommand = adminCommand(
+    new SlashCommandBuilder()
+        .setName("embed")
+        .setDescription("Vytvorí tematický embed")
+        .addUserOption(option =>
+            option
+                .setName("hráč")
+                .setDescription("Hráč")
+                .setRequired(true)
+        )
+        .addStringOption(option =>
+            option
+                .setName("štýl")
+                .setDescription("Vyber štýl")
+                .setRequired(true)
+                .addChoices(
+                    { name: "🌌 Polárna žiara", value: "aurora" },
+                    { name: "❄️ Sneženie", value: "snow" },
+                    { name: "🔥 Oheň", value: "fire" },
+                    { name: "🧊 Ľad", value: "ice" },
+                    { name: "🌊 Oceán", value: "ocean" },
+                    { name: "🚀 Vesmír", value: "space" },
+                    { name: "🌠 Galaxia", value: "galaxy" },
+                    { name: "🌅 Západ slnka", value: "sunset" },
+                    { name: "⛈️ Búrka", value: "storm" },
+                    { name: "🌈 Dúha", value: "rainbow" },
+                    { name: "🌲 Les", value: "forest" },
+                    { name: "🏜️ Púšť", value: "desert" },
+                    { name: "🌋 Sopka", value: "volcano" },
+                    { name: "☢️ Toxic", value: "toxic" },
+                    { name: "💻 Cyber", value: "cyber" },
+                    { name: "🩸 Blood", value: "blood" },
+                    { name: "🌑 Shadow", value: "shadow" },
+                    { name: "💎 Diamant", value: "diamond" },
+                    { name: "🏆 Gold", value: "gold" },
+                    { name: "⛏️ Minecraft", value: "minecraft" }
+                )
+        )
+        .addStringOption(option =>
+            option
+                .setName("text")
+                .setDescription("Voliteľný text")
+                .setRequired(false)
+                .setMaxLength(1000)
+        )
 );
 
 commands.push(embedCommand);
 
-
-// HELP
+// ======================================================
+// /help
+// ======================================================
 
 commands.push(
     new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Zobrazi pomoc")
+        .setDescription("Zobrazí pomoc")
 );
 
-
-// PING
+// ======================================================
+// /ping
+// ======================================================
 
 commands.push(
     new SlashCommandBuilder()
@@ -339,55 +331,102 @@ commands.push(
         .setDescription("Skontroluje stav bota")
 );
 
-
-// SERVERINFO
+// ======================================================
+// /serverinfo
+// ======================================================
 
 commands.push(
     new SlashCommandBuilder()
         .setName("serverinfo")
-        .setDescription("Informacie o serveri")
+        .setDescription("Informácie o serveri")
 );
 
+// ======================================================
+// /styles
+// ======================================================
+
+commands.push(
+    new SlashCommandBuilder()
+        .setName("styles")
+        .setDescription("Zobrazí všetky dostupné embed štýly")
+);
 
 // ======================================================
-// REGISTER
+// /avatar
+// ======================================================
+
+commands.push(
+    new SlashCommandBuilder()
+        .setName("avatar")
+        .setDescription("Zobrazí avatar hráča")
+        .addUserOption(option =>
+            option
+                .setName("hráč")
+                .setDescription("Hráč")
+                .setRequired(false)
+        )
+);
+
+// ======================================================
+// /userinfo
+// ======================================================
+
+commands.push(
+    new SlashCommandBuilder()
+        .setName("userinfo")
+        .setDescription("Zobrazí informácie o hráčovi")
+        .addUserOption(option =>
+            option
+                .setName("hráč")
+                .setDescription("Hráč")
+                .setRequired(false)
+        )
+);
+
+// ======================================================
+// REGISTER COMMANDS
 // ======================================================
 
 async function registerCommands() {
-
-    console.log("Registrujem slash prikazy...");
+    console.log("Registrujem slash príkazy...");
 
     const rest = new REST({
         version: "10"
     }).setToken(TOKEN);
 
     try {
-
         await rest.put(
             Routes.applicationCommands(CLIENT_ID),
             {
-                body: commands.map(function(command) {
-                    return command.toJSON();
-                })
+                body: commands.map(command => command.toJSON())
             }
         );
 
-        console.log("Slash prikazy boli zaregistrovane!");
-
+        console.log("Slash príkazy boli úspešne zaregistrované!");
     } catch (error) {
-
-        console.error("Chyba pri registracii:");
+        console.error("Chyba pri registrácii príkazov:");
         console.error(error);
-
     }
 }
 
+// ======================================================
+// PERMISSION CHECK
+// ======================================================
+
+function isAdmin(interaction) {
+    return (
+        interaction.memberPermissions &&
+        interaction.memberPermissions.has(
+            PermissionFlagsBits.Administrator
+        )
+    );
+}
 
 // ======================================================
 // INTERACTIONS
 // ======================================================
 
-client.on("interactionCreate", async function(interaction) {
+client.on("interactionCreate", async interaction => {
 
     if (!interaction.isChatInputCommand()) {
         return;
@@ -395,9 +434,9 @@ client.on("interactionCreate", async function(interaction) {
 
     try {
 
-        // =========================
+        // ==================================================
         // PING
-        // =========================
+        // ==================================================
 
         if (interaction.commandName === "ping") {
 
@@ -405,10 +444,10 @@ client.on("interactionCreate", async function(interaction) {
                 .setColor(0x57F287)
                 .setTitle("🏓 Pong!")
                 .setDescription(
-                    "Bot funguje!\n\n" +
-                    "📡 Ping: " +
+                    "Bot funguje správne!\n\n" +
+                    "📡 Ping: `" +
                     client.ws.ping +
-                    "ms"
+                    "ms`"
                 )
                 .setTimestamp();
 
@@ -417,39 +456,44 @@ client.on("interactionCreate", async function(interaction) {
             });
         }
 
-
-        // =========================
+        // ==================================================
         // HELP
-        // =========================
+        // ==================================================
 
         if (interaction.commandName === "help") {
 
             const embed = new EmbedBuilder()
                 .setColor(0x5865F2)
-                .setTitle("🤖 Rank Bot")
+                .setTitle("🤖 CZ/SK/EN Rank Bot")
                 .setDescription(
-                    "Minecraft Rank System"
+                    "Minecraft Rank System + tematické Discord embedy"
                 )
                 .addFields(
                     {
-                        name: "🏆 Rank",
+                        name: "🏆 Rank systém",
                         value:
-                            "/addrank - pridat rank\n" +
-                            "/embed - vytvorit stylovy embed"
+                            "`/addrank` — pridá rank hráčovi\n" +
+                            "Previous Rank a New Rank sú **free text**.\n" +
+                            "Gamemode je tiež **free text**."
+                    },
+                    {
+                        name: "🎨 Embedy",
+                        value:
+                            "`/embed` — vytvorí tematický embed\n" +
+                            "`/styles` — zobrazí všetky štýly"
                     },
                     {
                         name: "🛠️ Utility",
                         value:
-                            "/ping - stav bota\n" +
-                            "/serverinfo - informacie o serveri"
-                    },
-                    {
-                        name: "🏆 Ranky",
-                        value:
-                            "LT1 • LT2 • LT3 • LT4 • LT5\n" +
-                            "HT1 • HT2 • HT3 • HT4 • HT5"
+                            "`/ping`\n" +
+                            "`/serverinfo`\n" +
+                            "`/userinfo`\n" +
+                            "`/avatar`"
                     }
                 )
+                .setFooter({
+                    text: "Minecraft Rank System"
+                })
                 .setTimestamp();
 
             return interaction.reply({
@@ -457,17 +501,41 @@ client.on("interactionCreate", async function(interaction) {
             });
         }
 
+        // ==================================================
+        // STYLES
+        // ==================================================
 
-        // =========================
+        if (interaction.commandName === "styles") {
+
+            const styleText = Object.entries(STYLES)
+                .map(([key, style]) =>
+                    `${style.emoji} **${style.name}** — \`/${key}\``
+                )
+                .join("\n");
+
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle("🎨 Dostupné Embed Štýly")
+                .setDescription(styleText)
+                .setFooter({
+                    text: `${Object.keys(STYLES).length} štýlov`
+                })
+                .setTimestamp();
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
+
+        // ==================================================
         // SERVERINFO
-        // =========================
+        // ==================================================
 
         if (interaction.commandName === "serverinfo") {
 
             if (!interaction.guild) {
-
                 return interaction.reply({
-                    content: "❌ Pouzi tento prikaz na serveri.",
+                    content: "❌ Tento príkaz používaj na serveri.",
                     ephemeral: true
                 });
             }
@@ -482,14 +550,22 @@ client.on("interactionCreate", async function(interaction) {
                 )
                 .addFields(
                     {
-                        name: "👥 Clenovia",
+                        name: "👥 Členovia",
                         value: String(guild.memberCount),
                         inline: true
                     },
                     {
-                        name: "🆔 ID",
+                        name: "🆔 Server ID",
                         value: guild.id,
                         inline: true
+                    },
+                    {
+                        name: "📅 Vytvorený",
+                        value:
+                            `<t:${Math.floor(
+                                guild.createdTimestamp / 1000
+                            )}:D>`,
+                        inline: false
                     }
                 )
                 .setTimestamp();
@@ -499,83 +575,153 @@ client.on("interactionCreate", async function(interaction) {
             });
         }
 
+        // ==================================================
+        // AVATAR
+        // ==================================================
 
-        // =========================
-        // PERMISSION CHECK
-        // =========================
+        if (interaction.commandName === "avatar") {
+
+            const user =
+                interaction.options.getUser("hráč") ||
+                interaction.user;
+
+            const avatar =
+                user.displayAvatarURL({
+                    size: 1024,
+                    extension: "png"
+                });
+
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle("🖼️ Avatar — " + user.username)
+                .setImage(avatar)
+                .setURL(avatar)
+                .setTimestamp();
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
+
+        // ==================================================
+        // USERINFO
+        // ==================================================
+
+        if (interaction.commandName === "userinfo") {
+
+            const user =
+                interaction.options.getUser("hráč") ||
+                interaction.user;
+
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle("👤 " + user.username)
+                .setThumbnail(
+                    user.displayAvatarURL()
+                )
+                .addFields(
+                    {
+                        name: "🆔 ID",
+                        value: user.id,
+                        inline: true
+                    },
+                    {
+                        name: "🤖 Bot",
+                        value: user.bot ? "Áno" : "Nie",
+                        inline: true
+                    },
+                    {
+                        name: "📅 Účet vytvorený",
+                        value:
+                            `<t:${Math.floor(
+                                user.createdTimestamp / 1000
+                            )}:R>`,
+                        inline: false
+                    }
+                )
+                .setTimestamp();
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
+
+        // ==================================================
+        // ADMIN COMMANDS
+        // ==================================================
 
         if (
             interaction.commandName === "addrank" ||
             interaction.commandName === "embed"
         ) {
 
-            if (
-                !interaction.memberPermissions ||
-                !interaction.memberPermissions.has(
-                    PermissionFlagsBits.Administrator
-                )
-            ) {
+            if (!isAdmin(interaction)) {
 
                 return interaction.reply({
                     content:
-                        "❌ Tento prikaz moze pouzivat iba Administrator.",
+                        "❌ Tento príkaz môže používať iba Administrator.",
                     ephemeral: true
                 });
             }
         }
 
-
-        // =========================
+        // ==================================================
         // ADDRANK
-        // =========================
+        // ==================================================
 
         if (interaction.commandName === "addrank") {
 
             const user =
-                interaction.options.getUser("hrac");
+                interaction.options.getUser("hráč");
 
             const gamemode =
                 interaction.options.getString("gamemode");
 
-            const rank =
-                interaction.options.getString("rank");
+            const previousRank =
+                interaction.options.getString("previous_rank");
+
+            const newRank =
+                interaction.options.getString("new_rank");
 
             const note =
-                interaction.options.getString("poznamka") ||
-                "Bez poznamky";
+                interaction.options.getString("poznámka") ||
+                "Bez poznámky";
 
             const status =
                 interaction.options.getString("status") ||
                 "SAME";
 
-            let statusText = "⚪ Bez zmeny";
+            let statusText = "⚪ BEZ ZMENY";
             let color = 0x5865F2;
+            let statusEmoji = "⚪";
 
             if (status === "UP") {
                 statusText = "🟢 RANK UP";
+                statusEmoji = "🟢";
                 color = 0x57F287;
             }
 
             if (status === "DOWN") {
                 statusText = "🔴 RANK DOWN";
+                statusEmoji = "🔴";
                 color = 0xED4245;
             }
 
             const embed = new EmbedBuilder()
                 .setColor(color)
-                .setTitle("🏆 " + rank + " • Rank Test")
+                .setTitle(
+                    `${statusEmoji} Rank Test • ${user.username}`
+                )
                 .setDescription(
-                    "### 👤 " +
-                    user.username +
-                    "\nRank test bol dokončený."
+                    "🏆 **Výsledok testovania hráča**"
                 )
                 .setThumbnail(
                     user.displayAvatarURL()
                 )
                 .addFields(
                     {
-                        name: "👤 Hrac",
-                        value: "<@" + user.id + ">",
+                        name: "👤 Hráč",
+                        value: `<@${user.id}>`,
                         inline: true
                     },
                     {
@@ -584,22 +730,27 @@ client.on("interactionCreate", async function(interaction) {
                         inline: true
                     },
                     {
-                        name: "🏆 Rank",
-                        value: "**" + rank + "**",
-                        inline: true
-                    },
-                    {
                         name: "📊 Status",
                         value: statusText,
                         inline: true
                     },
                     {
-                        name: "🧪 Testoval",
-                        value: "<@" + interaction.user.id + ">",
+                        name: "⬅️ Previous Rank",
+                        value: `**${previousRank}**`,
                         inline: true
                     },
                     {
-                        name: "📝 Poznamka",
+                        name: "➡️ New Rank",
+                        value: `**${newRank}**`,
+                        inline: true
+                    },
+                    {
+                        name: "🧪 Tester",
+                        value: `<@${interaction.user.id}>`,
+                        inline: true
+                    },
+                    {
+                        name: "📝 Poznámka",
                         value: note,
                         inline: false
                     }
@@ -614,18 +765,17 @@ client.on("interactionCreate", async function(interaction) {
             });
         }
 
-
-        // =========================
+        // ==================================================
         // EMBED
-        // =========================
+        // ==================================================
 
         if (interaction.commandName === "embed") {
 
             const user =
-                interaction.options.getUser("hrac");
+                interaction.options.getUser("hráč");
 
             const styleKey =
-                interaction.options.getString("styl");
+                interaction.options.getString("štýl");
 
             const text =
                 interaction.options.getString("text");
@@ -636,33 +786,29 @@ client.on("interactionCreate", async function(interaction) {
             if (!style) {
 
                 return interaction.reply({
-                    content: "❌ Neznamy styl.",
+                    content: "❌ Neznámy štýl.",
                     ephemeral: true
                 });
             }
 
             const description =
                 text ||
-                style.description +
-                "\n\n👤 Hrac: <@" +
-                user.id +
-                ">";
+                `${style.emoji} ${style.name}\n\n` +
+                `👤 Hráč: <@${user.id}>`;
 
             const embed = new EmbedBuilder()
                 .setColor(style.color)
                 .setTitle(
-                    style.emoji +
-                    " " +
-                    style.name
+                    `${style.emoji} ${style.name}`
                 )
                 .setDescription(description)
                 .setThumbnail(
                     user.displayAvatarURL()
                 )
+                .setImage(style.image)
                 .setFooter({
                     text:
-                        "Minecraft • " +
-                        style.name
+                        `Minecraft • ${style.name}`
                 })
                 .setTimestamp();
 
@@ -676,24 +822,37 @@ client.on("interactionCreate", async function(interaction) {
         console.error("Interaction error:");
         console.error(error);
 
-        if (!interaction.replied) {
+        try {
 
-            await interaction.reply({
-                content:
-                    "❌ Nastala chyba pri vykonavani prikazu.",
-                ephemeral: true
-            });
+            if (interaction.replied || interaction.deferred) {
 
+                await interaction.followUp({
+                    content:
+                        "❌ Nastala chyba pri vykonávaní príkazu.",
+                    ephemeral: true
+                });
+
+            } else {
+
+                await interaction.reply({
+                    content:
+                        "❌ Nastala chyba pri vykonávaní príkazu.",
+                    ephemeral: true
+                });
+
+            }
+
+        } catch (replyError) {
+            console.error(replyError);
         }
     }
 });
-
 
 // ======================================================
 // READY
 // ======================================================
 
-client.once("clientReady", function() {
+client.once("clientReady", () => {
 
     console.log(
         "BOT JE ONLINE ako " +
@@ -705,29 +864,30 @@ client.once("clientReady", function() {
     );
 });
 
-
 // ======================================================
 // RENDER WEB SERVER
 // ======================================================
 
 const PORT = process.env.PORT || 10000;
 
-http.createServer(function(req, res) {
+http.createServer((req, res) => {
 
     res.writeHead(200, {
-        "Content-Type": "text/plain; charset=utf-8"
+        "Content-Type":
+            "text/plain; charset=utf-8"
     });
 
-    res.end("Rank Bot is online!");
+    res.end(
+        "CZ/SK/EN Rank Bot is online!"
+    );
 
-}).listen(PORT, "0.0.0.0", function() {
+}).listen(PORT, "0.0.0.0", () => {
 
     console.log(
-        "Web server bezi na porte " +
+        "Web server beží na porte " +
         PORT
     );
 });
-
 
 // ======================================================
 // START
@@ -738,20 +898,19 @@ async function start() {
     await registerCommands();
 
     console.log(
-        "Pripajam bota na Discord..."
+        "Pripájam bota na Discord..."
     );
 
     await client.login(TOKEN);
 }
 
-start().catch(function(error) {
+start().catch(error => {
 
     console.error(
-        "BOT SA NEPODARILO SPUSTIT:"
+        "BOT SA NEPODARILO SPUSTIŤ:"
     );
 
     console.error(error);
 
     process.exit(1);
 });
-
