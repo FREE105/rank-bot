@@ -15,10 +15,8 @@ const http = require("http");
 // ======================================================
 
 const TOKEN = process.env.DISCORD_TOKEN;
-
 const CLIENT_ID = process.env.CLIENT_ID || "1535978914843729970";
 const GUILD_ID = process.env.GUILD_ID || "1523657617698984038";
-
 const PORT = process.env.PORT || 10000;
 
 if (!TOKEN) {
@@ -36,27 +34,16 @@ const client = new Client({
     ]
 });
 
-// ======================================================
-// DISCORD EVENTS
-// ======================================================
-
 client.on("error", error => {
-    console.error("❌ Discord error:");
-    console.error(error);
+    console.error("❌ Discord error:", error);
 });
 
 client.on("warn", warning => {
-    console.warn("⚠️ Discord warning:");
-    console.warn(warning);
-});
-
-client.on("debug", debug => {
-    // Nezobrazujeme token ani citlivé údaje
-    console.log("🔎 Discord:", debug);
+    console.warn("⚠️ Discord warning:", warning);
 });
 
 // ======================================================
-// SLASH COMMANDS
+// COMMANDS
 // ======================================================
 
 const commands = [];
@@ -65,80 +52,139 @@ const commands = [];
 // /addrank
 // ======================================================
 
-const addRankCommand = new SlashCommandBuilder()
-    .setName("addrank")
-    .setDescription("Pridá výsledok rank testu")
-    .setDefaultMemberPermissions(
-        PermissionFlagsBits.Administrator.toString()
-    )
+commands.push(
+    new SlashCommandBuilder()
+        .setName("addrank")
+        .setDescription("Pridá výsledok rank testu")
 
-    // HRÁČ
-    .addUserOption(option =>
-        option
-            .setName("hrac")
-            .setDescription("Hráč, ktorého si testoval")
-            .setRequired(true)
-    )
+        .setDefaultMemberPermissions(
+            PermissionFlagsBits.Administrator.toString()
+        )
 
-    // GAMEMODE - FREE TEXT
-    .addStringOption(option =>
-        option
-            .setName("gamemode")
-            .setDescription("Gamemode")
-            .setRequired(true)
-            .setMaxLength(100)
-    )
+        // HRÁČ
+        .addUserOption(option =>
+            option
+                .setName("hrac")
+                .setDescription("Hráč, ktorý bol testovaný")
+                .setRequired(true)
+        )
 
-    // PREVIOUS RANK - FREE TEXT
-    .addStringOption(option =>
-        option
-            .setName("previous_rank")
-            .setDescription("Predošlý rank")
-            .setRequired(true)
-            .setMaxLength(100)
-    )
+        // GAMEMODE - FREE TEXT
+        .addStringOption(option =>
+            option
+                .setName("gamemode")
+                .setDescription("Gamemode - ľubovoľný text")
+                .setRequired(true)
+                .setMaxLength(100)
+        )
 
-    // NEW RANK - FREE TEXT
-    .addStringOption(option =>
-        option
-            .setName("new_rank")
-            .setDescription("Nový rank")
-            .setRequired(true)
-            .setMaxLength(100)
-    )
+        // PREVIOUS RANK - FREE TEXT
+        .addStringOption(option =>
+            option
+                .setName("previous_rank")
+                .setDescription("Predošlý rank - ľubovoľný text")
+                .setRequired(true)
+                .setMaxLength(50)
+        )
 
-    // STATUS
-    .addStringOption(option =>
-        option
-            .setName("status")
-            .setDescription("Výsledok testu")
-            .setRequired(false)
-            .addChoices(
-                {
-                    name: "🟢 Rank UP",
-                    value: "UP"
-                },
-                {
-                    name: "🔴 Rank DOWN",
-                    value: "DOWN"
-                },
-                {
-                    name: "⚪ Bez zmeny",
-                    value: "SAME"
-                }
-            )
-    )
+        // NEW RANK - FREE TEXT
+        .addStringOption(option =>
+            option
+                .setName("new_rank")
+                .setDescription("Nový rank - ľubovoľný text")
+                .setRequired(true)
+                .setMaxLength(50)
+        )
 
-    // NOTE
-    .addStringOption(option =>
-        option
-            .setName("poznamka")
-            .setDescription("Voliteľná poznámka")
-            .setRequired(false)
-            .setMaxLength(1000)
-    );
+        // STATUS
+        .addStringOption(option =>
+            option
+                .setName("status")
+                .setDescription("Výsledok testu")
+                .setRequired(true)
+                .addChoices(
+                    {
+                        name: "🟢 Rank UP",
+                        value: "UP"
+                    },
+                    {
+                        name: "🔴 Rank DOWN",
+                        value: "DOWN"
+                    },
+                    {
+                        name: "⚪ Bez zmeny",
+                        value: "SAME"
+                    }
+                )
+        )
 
-commands.push(addRankCommand);
+        // RATING
+        .addIntegerOption(option =>
+            option
+                .setName("rating")
+                .setDescription("Celkové hodnotenie 1-10")
+                .setRequired(false)
+                .setMinValue(1)
+                .setMaxValue(10)
+        )
+
+        // ROUNDS
+        .addIntegerOption(option =>
+            option
+                .setName("rounds")
+                .setDescription("Počet odohraných kôl")
+                .setRequired(false)
+                .setMinValue(1)
+                .setMaxValue(1000)
+        )
+
+        // TIME
+        .addStringOption(option =>
+            option
+                .setName("cas")
+                .setDescription("Čas testu, napr. 12:34")
+                .setRequired(false)
+                .setMaxLength(30)
+        )
+
+        // WINS
+        .addIntegerOption(option =>
+            option
+                .setName("wins")
+                .setDescription("Počet vyhraných kôl")
+                .setRequired(false)
+                .setMinValue(0)
+                .setMaxValue(1000)
+        )
+
+        // LOSSES
+        .addIntegerOption(option =>
+            option
+                .setName("losses")
+                .setDescription("Počet prehratých kôl")
+                .setRequired(false)
+                .setMinValue(0)
+                .setMaxValue(1000)
+        )
+
+        // SCORE
+        .addStringOption(option =>
+            option
+                .setName("score")
+                .setDescription("Skóre, napr. 5-2")
+                .setRequired(false)
+                .setMaxLength(30)
+        )
+
+        // POZNÁMKA
+        .addStringOption(option =>
+            option
+                .setName("poznamka")
+                .setDescription("Poznámka testera")
+                .setRequired(false)
+                .setMaxLength(1000)
+        )
+);
 
 // ======================================================
 // /ping
@@ -167,7 +213,7 @@ commands.push(
 commands.push(
     new SlashCommandBuilder()
         .setName("serverinfo")
-        .setDescription("Zobrazí informácie o serveri")
+        .setDescription("Informácie o serveri")
 );
 
 // ======================================================
@@ -192,7 +238,7 @@ async function registerCommands() {
         }
     );
 
-    console.log("✅ Slash príkazy boli zaregistrované!");
+    console.log("✅ Slash príkazy zaregistrované!");
 }
 
 // ======================================================
@@ -208,7 +254,7 @@ client.on("interactionCreate", async interaction => {
     try {
 
         // ==================================================
-        // /PING
+        // PING
         // ==================================================
 
         if (interaction.commandName === "ping") {
@@ -217,8 +263,7 @@ client.on("interactionCreate", async interaction => {
                 .setColor(0x57F287)
                 .setTitle("🏓 Pong!")
                 .setDescription(
-                    `Bot funguje správne!\n\n` +
-                    `📡 Ping: ${client.ws.ping} ms`
+                    `Bot funguje správne!\n\n📡 Ping: **${client.ws.ping} ms**`
                 )
                 .setTimestamp();
 
@@ -228,14 +273,14 @@ client.on("interactionCreate", async interaction => {
         }
 
         // ==================================================
-        // /HELP
+        // HELP
         // ==================================================
 
         if (interaction.commandName === "help") {
 
             const embed = new EmbedBuilder()
                 .setColor(0x5865F2)
-                .setTitle("🤖 Rank Bot")
+                .setTitle("🤖 CZ/SK/EN Tier Bot")
                 .setDescription(
                     "Minecraft Rank Test System"
                 )
@@ -248,18 +293,19 @@ client.on("interactionCreate", async interaction => {
                     {
                         name: "🛠️ Utility",
                         value:
-                            "`/ping` — skontroluje stav bota\n" +
+                            "`/ping` — stav bota\n" +
                             "`/serverinfo` — informácie o serveri\n" +
-                            "`/help` — zobrazí túto pomoc"
+                            "`/help` — pomoc"
                     },
                     {
-                        name: "📝 /addrank",
+                        name: "📊 Rank Test",
                         value:
-                            "Gamemode, Previous Rank a New Rank sú **voľný text**."
+                            "Gamemode, previous rank, new rank, " +
+                            "status, rating, rounds, čas, wins, losses, score a poznámka."
                     }
                 )
                 .setFooter({
-                    text: "Rank Bot"
+                    text: "Rank Bot • Rank Test System"
                 })
                 .setTimestamp();
 
@@ -269,7 +315,7 @@ client.on("interactionCreate", async interaction => {
         }
 
         // ==================================================
-        // /SERVERINFO
+        // SERVER INFO
         // ==================================================
 
         if (interaction.commandName === "serverinfo") {
@@ -277,10 +323,10 @@ client.on("interactionCreate", async interaction => {
             if (!interaction.guild) {
 
                 return interaction.reply({
-                    content:
-                        "❌ Tento príkaz musíš použiť na Discord serveri.",
+                    content: "❌ Tento príkaz musíš použiť na serveri.",
                     ephemeral: true
                 });
+
             }
 
             const guild = interaction.guild;
@@ -300,11 +346,6 @@ client.on("interactionCreate", async interaction => {
                     {
                         name: "🆔 Server ID",
                         value: guild.id,
-                        inline: true
-                    },
-                    {
-                        name: "👑 Vlastník",
-                        value: `<@${guild.ownerId}>`,
                         inline: true
                     }
                 )
@@ -333,11 +374,12 @@ client.on("interactionCreate", async interaction => {
                         "❌ Tento príkaz môže používať iba Administrator.",
                     ephemeral: true
                 });
+
             }
         }
 
         // ==================================================
-        // /ADDRANK
+        // ADDRANK
         // ==================================================
 
         if (interaction.commandName === "addrank") {
@@ -355,7 +397,25 @@ client.on("interactionCreate", async interaction => {
                 interaction.options.getString("new_rank");
 
             const status =
-                interaction.options.getString("status") || "SAME";
+                interaction.options.getString("status");
+
+            const rating =
+                interaction.options.getInteger("rating");
+
+            const rounds =
+                interaction.options.getInteger("rounds");
+
+            const time =
+                interaction.options.getString("cas");
+
+            const wins =
+                interaction.options.getInteger("wins");
+
+            const losses =
+                interaction.options.getInteger("losses");
+
+            const score =
+                interaction.options.getString("score");
 
             const note =
                 interaction.options.getString("poznamka");
@@ -363,93 +423,185 @@ client.on("interactionCreate", async interaction => {
             const tester =
                 interaction.user;
 
+            // ==================================================
             // STATUS
+            // ==================================================
+
             let statusText = "⚪ BEZ ZMENY";
             let color = 0x5865F2;
 
             if (status === "UP") {
+
                 statusText = "🟢 RANK UP";
                 color = 0x57F287;
+
             }
 
             if (status === "DOWN") {
+
                 statusText = "🔴 RANK DOWN";
                 color = 0xED4245;
+
             }
 
+            // ==================================================
+            // RATING
+            // ==================================================
+
+            let ratingText = "Neuvedené";
+
+            if (rating !== null) {
+
+                const stars =
+                    "⭐".repeat(rating);
+
+                ratingText =
+                    `${stars} **${rating}/10**`;
+
+            }
+
+            // ==================================================
+            // RESULTS
+            // ==================================================
+
+            let resultsText = "";
+
+            if (wins !== null) {
+                resultsText += `🟢 Wins: **${wins}**\n`;
+            }
+
+            if (losses !== null) {
+                resultsText += `🔴 Losses: **${losses}**\n`;
+            }
+
+            if (score) {
+                resultsText += `🏆 Score: **${score}**\n`;
+            }
+
+            if (!resultsText) {
+                resultsText = "Neuvedené";
+            }
+
+            // ==================================================
             // EMBED
-            const embed = new EmbedBuilder()
-                .setColor(color)
+            // ==================================================
 
-                .setTitle("🏆 Rank Test")
+            const embed =
+                new EmbedBuilder()
 
-                .setDescription(
-                    `### 👤 ${player.username}\n` +
-                    `Výsledok rank testu`
-                )
+                    .setColor(color)
 
-                .setThumbnail(
-                    player.displayAvatarURL({
-                        size: 256
+                    .setTitle("🏆 RANK TEST")
+
+                    .setDescription(
+                        `## 👤 ${player.username}\n` +
+                        `${statusText}`
+                    )
+
+                    .setThumbnail(
+                        player.displayAvatarURL({
+                            size: 256
+                        })
+                    )
+
+                    // PLAYER
+                    .addFields(
+                        {
+                            name: "👤 Hráč",
+                            value:
+                                `<@${player.id}>\n` +
+                                `\`${player.username}\``,
+                            inline: true
+                        },
+
+                        // GAMEMODE
+                        {
+                            name: "🎮 Gamemode",
+                            value:
+                                `\`${gamemode}\``,
+                            inline: true
+                        },
+
+                        // TESTER
+                        {
+                            name: "🧪 Tester",
+                            value:
+                                `<@${tester.id}>`,
+                            inline: true
+                        },
+
+                        // OLD RANK
+                        {
+                            name: "📉 Previous Rank",
+                            value:
+                                `\`${previousRank}\``,
+                            inline: true
+                        },
+
+                        // NEW RANK
+                        {
+                            name: "📈 New Rank",
+                            value:
+                                `\`${newRank}\``,
+                            inline: true
+                        },
+
+                        // STATUS
+                        {
+                            name: "📊 Status",
+                            value:
+                                statusText,
+                            inline: true
+                        },
+
+                        // RATING
+                        {
+                            name: "⭐ Hodnotenie",
+                            value:
+                                ratingText,
+                            inline: true
+                        },
+
+                        // ROUNDS
+                        {
+                            name: "🔄 Rounds",
+                            value:
+                                rounds !== null
+                                    ? `**${rounds}**`
+                                    : "Neuvedené",
+                            inline: true
+                        },
+
+                        // TIME
+                        {
+                            name: "⏱️ Čas",
+                            value:
+                                time
+                                    ? `**${time}**`
+                                    : "Neuvedené",
+                            inline: true
+                        },
+
+                        // RESULTS
+                        {
+                            name: "⚔️ Výsledky",
+                            value:
+                                resultsText,
+                            inline: true
+                        }
+                    )
+
+                    .setFooter({
+                        text:
+                            "CZ/SK/EN Tier Bot • Rank Test System"
                     })
-                )
 
-                .addFields(
+                    .setTimestamp();
 
-                    {
-                        name: "👤 Hráč",
-                        value:
-                            `<@${player.id}>\n` +
-                            `\`${player.username}\``,
-                        inline: true
-                    },
-
-                    {
-                        name: "🎮 Gamemode",
-                        value:
-                            `\`${gamemode}\``,
-                        inline: true
-                    },
-
-                    {
-                        name: "🧪 Testoval",
-                        value:
-                            `<@${tester.id}>\n` +
-                            `\`${tester.username}\``,
-                        inline: true
-                    },
-
-                    {
-                        name: "📉 Previous Rank",
-                        value:
-                            `\`${previousRank}\``,
-                        inline: true
-                    },
-
-                    {
-                        name: "📈 New Rank",
-                        value:
-                            `\`${newRank}\``,
-                        inline: true
-                    },
-
-                    {
-                        name: "📊 Status",
-                        value:
-                            statusText,
-                        inline: true
-                    }
-
-                )
-
-                .setFooter({
-                    text:
-                        "Rank Bot • Minecraft Rank Test System"
-                })
-
-                .setTimestamp();
-
+            // ==================================================
             // NOTE
+            // ==================================================
+
             if (note) {
 
                 embed.addFields({
@@ -459,6 +611,10 @@ client.on("interactionCreate", async interaction => {
                 });
 
             }
+
+            // ==================================================
+            // SEND
+            // ==================================================
 
             return interaction.reply({
                 embeds: [embed]
@@ -480,6 +636,7 @@ client.on("interactionCreate", async interaction => {
                     "❌ Nastala chyba pri vykonávaní príkazu.",
                 ephemeral: true
             });
+
         }
     }
 });
@@ -490,14 +647,12 @@ client.on("interactionCreate", async interaction => {
 
 client.once("ready", async () => {
 
-    console.log("");
     console.log("========================================");
     console.log("🤖 BOT JE ONLINE!");
     console.log(`👤 ${client.user.tag}`);
     console.log(`🆔 Client ID: ${CLIENT_ID}`);
     console.log(`🏠 Guild ID: ${GUILD_ID}`);
     console.log("========================================");
-    console.log("");
 
     client.user.setActivity(
         "Minecraft Rank System"
@@ -514,14 +669,15 @@ client.once("ready", async () => {
         );
 
         console.error(error);
+
     }
 });
 
 // ======================================================
-// HTTP SERVER FOR RENDER
+// HTTP SERVER
 // ======================================================
 
-const server = http.createServer((req, res) => {
+http.createServer((req, res) => {
 
     res.writeHead(200, {
         "Content-Type":
@@ -529,12 +685,10 @@ const server = http.createServer((req, res) => {
     });
 
     res.end(
-        "Rank Bot is online!"
+        "CZ/SK/EN Tier Bot is online!"
     );
 
-});
-
-server.listen(
+}).listen(
     PORT,
     "0.0.0.0",
     () => {
@@ -550,23 +704,26 @@ server.listen(
 // LOGIN
 // ======================================================
 
-console.log("🔄 Skúšam pripojiť Discord...");
+console.log(
+    "🔄 Skúšam pripojiť Discord..."
+);
 
 client.login(TOKEN)
     .then(() => {
 
         console.log(
-            "🔐 Discord login OK!"
+            "🔐 Discord login OK"
         );
 
     })
     .catch(error => {
 
         console.error(
-            "❌ Discord login zlyhal!"
+            "❌ Discord login zlyhal:"
         );
 
         console.error(error);
 
         process.exit(1);
+
     });
