@@ -494,12 +494,17 @@ console.log("🔄 Skúšam pripojiť Discord...");
 
 client.login(TOKEN)
     .then(() => {
-        console.log("🔐 Discord login OK");
+        console.log("🔐 Discord login OK!");
+        console.log(`🤖 Bot je prihlásený ako ${client.user.tag}`);
     })
     .catch(error => {
-        console.error(
-            "❌ Discord login zlyhal:"
-        );
+        console.error("❌ Discord login zlyhal!");
         console.error(error);
         process.exit(1);
     });
+
+setTimeout(() => {
+    console.error("⏰ Discord login trvá viac ako 30 sekúnd!");
+    console.error("Skontroluj Discord token a Discord Developer Portal.");
+    process.exit(1);
+}, 30000);
