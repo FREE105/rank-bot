@@ -16,15 +16,31 @@ const http = require("http");
 // ======================================================
 
 const TOKEN = process.env.DISCORD_TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID || "1535978914843729970";
-const GUILD_ID = process.env.GUILD_ID || "1523657617698984038";
-const PORT = process.env.PORT || 10000;
+
+const CLIENT_ID =
+    process.env.CLIENT_ID ||
+    "1535978914843729970";
+
+const GUILD_ID =
+    process.env.GUILD_ID ||
+    "1523657617698984038";
+
+const PORT =
+    process.env.PORT ||
+    10000;
 
 const OFFICIAL_WEB =
     "https://czskengglobalranking.lovable.app/";
 
+// ======================================================
+// TOKEN CHECK
+// ======================================================
+
 if (!TOKEN) {
-    console.error("❌ DISCORD_TOKEN nie je nastavený!");
+    console.error(
+        "❌ DISCORD_TOKEN nie je nastavený v Environment Variables!"
+    );
+
     process.exit(1);
 }
 
@@ -42,11 +58,15 @@ const client = new Client({
 // DATABASE
 // ======================================================
 
-const DATABASE_FILE = "./testers.json";
+const DATABASE_FILE =
+    "./testers.json";
 
 function loadTesters() {
+
     try {
+
         if (!fs.existsSync(DATABASE_FILE)) {
+
             fs.writeFileSync(
                 DATABASE_FILE,
                 "{}"
@@ -96,16 +116,20 @@ function saveTesters(data) {
 }
 
 // ======================================================
-// COMMON EMBED FOOTER
+// OFFICIAL WEB
 // ======================================================
 
 function addOfficialWeb(embed) {
 
     embed.addFields({
-        name: "🌐 Official Tier Web",
+        name:
+            "🌐 Official Tier Web",
+
         value:
             `[Otvoriť oficiálny Tier Web](${OFFICIAL_WEB})`,
-        inline: false
+
+        inline:
+            false
     });
 
     embed.setFooter({
@@ -117,7 +141,7 @@ function addOfficialWeb(embed) {
 }
 
 // ======================================================
-// SLASH COMMANDS
+// COMMANDS
 // ======================================================
 
 const commands = [];
@@ -127,8 +151,11 @@ const commands = [];
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("addrank")
+
         .setDescription(
             "Pridá výsledok rank testu"
         )
@@ -184,17 +211,26 @@ commands.push(
                 )
                 .setRequired(false)
                 .addChoices(
+
                     {
-                        name: "🟢 Rank UP",
-                        value: "UP"
+                        name:
+                            "🟢 Rank UP",
+                        value:
+                            "UP"
                     },
+
                     {
-                        name: "🔴 Rank DOWN",
-                        value: "DOWN"
+                        name:
+                            "🔴 Rank DOWN",
+                        value:
+                            "DOWN"
                     },
+
                     {
-                        name: "⚪ Bez zmeny",
-                        value: "SAME"
+                        name:
+                            "⚪ Bez zmeny",
+                        value:
+                            "SAME"
                     }
                 )
         )
@@ -236,8 +272,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("settester")
+
         .setDescription(
             "Nastaví používateľa ako testera"
         )
@@ -245,6 +284,10 @@ commands.push(
         .setDefaultMemberPermissions(
             PermissionFlagsBits.Administrator.toString()
         )
+
+        // ==============================================
+        // TESTER
+        // ==============================================
 
         .addUserOption(option =>
             option
@@ -255,6 +298,24 @@ commands.push(
                 .setRequired(true)
         )
 
+        // ==============================================
+        // GAMEMODE - POVINNÝ FREE TEXT
+        // ==============================================
+
+        .addStringOption(option =>
+            option
+                .setName("gamemode")
+                .setDescription(
+                    "Gamemode testera – ľubovoľný text"
+                )
+                .setRequired(true)
+                .setMaxLength(100)
+        )
+
+        // ==============================================
+        // RANK - POVINNÝ
+        // ==============================================
+
         .addStringOption(option =>
             option
                 .setName("rank")
@@ -264,6 +325,10 @@ commands.push(
                 .setRequired(true)
                 .setMaxLength(100)
         )
+
+        // ==============================================
+        // XP - POVINNÉ
+        // ==============================================
 
         .addIntegerOption(option =>
             option
@@ -276,6 +341,10 @@ commands.push(
                 .setMaxValue(1000000)
         )
 
+        // ==============================================
+        // SPECIALIZÁCIA
+        // ==============================================
+
         .addStringOption(option =>
             option
                 .setName("specializacia")
@@ -286,6 +355,10 @@ commands.push(
                 .setMaxLength(200)
         )
 
+        // ==============================================
+        // HODNOTENIE
+        // ==============================================
+
         .addStringOption(option =>
             option
                 .setName("hodnotenie")
@@ -295,6 +368,10 @@ commands.push(
                 .setRequired(false)
                 .setMaxLength(500)
         )
+
+        // ==============================================
+        // TESTY
+        // ==============================================
 
         .addIntegerOption(option =>
             option
@@ -307,6 +384,10 @@ commands.push(
                 .setMaxValue(1000000)
         )
 
+        // ==============================================
+        // ÚSPEŠNÉ TESTY
+        // ==============================================
+
         .addIntegerOption(option =>
             option
                 .setName("uspesne_testy")
@@ -317,6 +398,10 @@ commands.push(
                 .setMinValue(0)
                 .setMaxValue(1000000)
         )
+
+        // ==============================================
+        // POZNÁMKA
+        // ==============================================
 
         .addStringOption(option =>
             option
@@ -334,8 +419,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("testerinfo")
+
         .setDescription(
             "Zobrazí profil testera"
         )
@@ -355,8 +443,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("testers")
+
         .setDescription(
             "Zobrazí zoznam testerov"
         )
@@ -367,8 +458,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("removetester")
+
         .setDescription(
             "Odoberie používateľovi status testera"
         )
@@ -402,8 +496,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("help")
+
         .setDescription(
             "Zobrazí pomoc"
         )
@@ -414,8 +511,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("ping")
+
         .setDescription(
             "Skontroluje stav bota"
         )
@@ -426,8 +526,11 @@ commands.push(
 // ======================================================
 
 commands.push(
+
     new SlashCommandBuilder()
+
         .setName("serverinfo")
+
         .setDescription(
             "Informácie o serveri"
         )
@@ -443,20 +546,24 @@ async function registerCommands() {
         "🔄 Registrujem slash príkazy..."
     );
 
-    const rest = new REST({
-        version: "10"
-    }).setToken(TOKEN);
+    const rest =
+        new REST({
+            version: "10"
+        }).setToken(TOKEN);
 
     await rest.put(
+
         Routes.applicationGuildCommands(
             CLIENT_ID,
             GUILD_ID
         ),
+
         {
-            body: commands.map(
-                command =>
-                    command.toJSON()
-            )
+            body:
+                commands.map(
+                    command =>
+                        command.toJSON()
+                )
         }
     );
 
@@ -469,10 +576,14 @@ async function registerCommands() {
 // ADMIN CHECK
 // ======================================================
 
-function isAdmin(interaction) {
+function isAdmin(
+    interaction
+) {
 
     return (
+
         interaction.memberPermissions &&
+
         interaction.memberPermissions.has(
             PermissionFlagsBits.Administrator
         )
@@ -480,11 +591,12 @@ function isAdmin(interaction) {
 }
 
 // ======================================================
-// INTERACTIONS
+// INTERACTION CREATE
 // ======================================================
 
 client.on(
     "interactionCreate",
+
     async interaction => {
 
         if (
@@ -495,9 +607,9 @@ client.on(
 
         try {
 
-            // ==========================================
+            // ==================================================
             // PING
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -506,23 +618,31 @@ client.on(
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0x57F287)
+
+                        .setColor(
+                            0x57F287
+                        )
+
                         .setTitle(
                             "🏓 Pong!"
                         )
+
                         .setDescription(
                             `Bot funguje správne!\n\n📡 Ping: **${client.ws.ping} ms**`
                         )
+
                         .setTimestamp();
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
+            // ==================================================
             // HELP
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -531,18 +651,25 @@ client.on(
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0x5865F2)
+
+                        .setColor(
+                            0x5865F2
+                        )
+
                         .setTitle(
                             "🤖 CZ/SK/EN Tier Bot"
                         )
+
                         .setDescription(
                             "Minecraft Rank & Tier Test System"
                         )
+
                         .addFields(
 
                             {
                                 name:
                                     "🏆 Rank System",
+
                                 value:
                                     "`/addrank` — výsledok rank testu\n" +
                                     "`/settester` — nastaví testera\n" +
@@ -554,24 +681,30 @@ client.on(
                             {
                                 name:
                                     "🛠️ Utility",
+
                                 value:
                                     "`/ping` — stav bota\n" +
                                     "`/serverinfo` — informácie o serveri\n" +
                                     "`/help` — pomoc"
                             }
                         )
+
                         .setTimestamp();
 
-                addOfficialWeb(embed);
+                addOfficialWeb(
+                    embed
+                );
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
+            // ==================================================
             // SERVERINFO
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -585,7 +718,9 @@ client.on(
                     return interaction.reply({
                         content:
                             "❌ Tento príkaz musíš použiť na serveri.",
-                        ephemeral: true
+
+                        ephemeral:
+                            true
                     });
                 }
 
@@ -594,68 +729,93 @@ client.on(
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0x5865F2)
+
+                        .setColor(
+                            0x5865F2
+                        )
+
                         .setTitle(
                             `🏰 ${guild.name}`
                         )
+
                         .setThumbnail(
                             guild.iconURL() ||
                             undefined
                         )
+
                         .addFields(
 
                             {
                                 name:
                                     "👥 Členovia",
+
                                 value:
                                     String(
                                         guild.memberCount
                                     ),
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🆔 Server ID",
+
                                 value:
                                     guild.id,
-                                inline: true
+
+                                inline:
+                                    true
                             }
                         )
+
                         .setTimestamp();
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
-            // ADMIN COMMAND CHECK
-            // ==========================================
+            // ==================================================
+            // ADMIN COMMANDS
+            // ==================================================
 
             if (
+
                 [
                     "addrank",
                     "settester",
                     "removetester"
+
                 ].includes(
                     interaction.commandName
                 )
+
             ) {
 
-                if (!isAdmin(interaction)) {
+                if (
+                    !isAdmin(
+                        interaction
+                    )
+                ) {
 
                     return interaction.reply({
+
                         content:
                             "❌ Tento príkaz môže používať iba používateľ s oprávnením Administrator.",
-                        ephemeral: true
+
+                        ephemeral:
+                            true
                     });
                 }
             }
 
-            // ==========================================
+            // ==================================================
             // ADDRANK
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -685,7 +845,8 @@ client.on(
                 const status =
                     interaction.options.getString(
                         "status"
-                    ) || "SAME";
+                    ) ||
+                    "SAME";
 
                 const rating =
                     interaction.options.getString(
@@ -712,7 +873,8 @@ client.on(
                     0x5865F2;
 
                 if (
-                    status === "UP"
+                    status ===
+                    "UP"
                 ) {
 
                     statusText =
@@ -723,7 +885,8 @@ client.on(
                 }
 
                 if (
-                    status === "DOWN"
+                    status ===
+                    "DOWN"
                 ) {
 
                     statusText =
@@ -735,66 +898,92 @@ client.on(
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(color)
+
+                        .setColor(
+                            color
+                        )
+
                         .setTitle(
                             "🏆 Rank Test"
                         )
+
                         .setDescription(
                             `## 👤 ${player.username}\nVýsledok rank testu`
                         )
+
                         .setThumbnail(
                             player.displayAvatarURL()
                         )
+
                         .addFields(
 
                             {
                                 name:
                                     "👤 Hráč",
+
                                 value:
                                     `<@${player.id}>\n\`${player.username}\``,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🎮 Gamemode",
+
                                 value:
                                     gamemode,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🧪 Tester",
+
                                 value:
                                     `<@${tester.id}>\n\`${tester.username}\``,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📉 Previous Rank",
+
                                 value:
                                     previousRank,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📈 New Rank",
+
                                 value:
                                     newRank,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📊 Status",
+
                                 value:
                                     statusText,
-                                inline: true
+
+                                inline:
+                                    true
                             }
                         )
+
                         .setTimestamp();
 
                 if (
@@ -802,11 +991,17 @@ client.on(
                 ) {
 
                     embed.addFields({
+
                         name:
                             "🔄 Rounds",
+
                         value:
-                            String(rounds),
-                        inline: true
+                            String(
+                                rounds
+                            ),
+
+                        inline:
+                            true
                     });
                 }
 
@@ -815,11 +1010,15 @@ client.on(
                 ) {
 
                     embed.addFields({
+
                         name:
                             "⭐ Hodnotenie",
+
                         value:
                             rating,
-                        inline: false
+
+                        inline:
+                            false
                     });
                 }
 
@@ -828,24 +1027,32 @@ client.on(
                 ) {
 
                     embed.addFields({
+
                         name:
                             "📝 Poznámka",
+
                         value:
                             note,
-                        inline: false
+
+                        inline:
+                            false
                     });
                 }
 
-                addOfficialWeb(embed);
+                addOfficialWeb(
+                    embed
+                );
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
+            // ==================================================
             // SETTESTER
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -857,11 +1064,19 @@ client.on(
                         "tester"
                     );
 
+                // POVINNÝ GAMEMODE
+                const gamemode =
+                    interaction.options.getString(
+                        "gamemode"
+                    );
+
+                // POVINNÝ RANK
                 const rank =
                     interaction.options.getString(
                         "rank"
                     );
 
+                // POVINNÉ XP
                 const experience =
                     interaction.options.getInteger(
                         "skusenosti"
@@ -880,12 +1095,14 @@ client.on(
                 const tests =
                     interaction.options.getInteger(
                         "testy"
-                    ) ?? 0;
+                    ) ??
+                    0;
 
                 const successfulTests =
                     interaction.options.getInteger(
                         "uspesne_testy"
-                    ) ?? 0;
+                    ) ??
+                    0;
 
                 const note =
                     interaction.options.getString(
@@ -901,13 +1118,22 @@ client.on(
                 const testers =
                     loadTesters();
 
-                testers[tester.id] = {
+                // ==========================================
+                // SAVE TESTER
+                // ==========================================
+
+                testers[
+                    tester.id
+                ] = {
 
                     userId:
                         tester.id,
 
                     username:
                         tester.username,
+
+                    gamemode:
+                        gamemode,
 
                     rank:
                         rank,
@@ -953,117 +1179,179 @@ client.on(
                     testers
                 );
 
+                // ==========================================
+                // SUCCESS RATE
+                // ==========================================
+
                 const successRate =
                     tests > 0
+
                         ? Math.round(
                             (
                                 successfulTests /
                                 tests
-                            ) * 100
+                            ) *
+                            100
                         )
+
                         : 0;
+
+                // ==========================================
+                // EMBED
+                // ==========================================
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0x57F287)
+
+                        .setColor(
+                            0x57F287
+                        )
+
                         .setTitle(
                             "🧪 Nový Tester"
                         )
+
                         .setDescription(
                             `## 🎉 ${tester.username}\nPoužívateľ bol úspešne nastavený ako tester.`
                         )
+
                         .setThumbnail(
                             tester.displayAvatarURL()
                         )
+
                         .addFields(
 
                             {
                                 name:
                                     "👤 Tester",
+
                                 value:
                                     `<@${tester.id}>`,
-                                inline: true
+
+                                inline:
+                                    true
+                            },
+
+                            {
+                                name:
+                                    "🎮 Gamemode",
+
+                                value:
+                                    gamemode,
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🏅 Rank",
+
                                 value:
                                     rank,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "⭐ Skúsenosti",
+
                                 value:
                                     `${experience} XP`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🧪 Testy",
+
                                 value:
-                                    String(tests),
-                                inline: true
+                                    String(
+                                        tests
+                                    ),
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "✅ Úspešné testy",
+
                                 value:
                                     String(
                                         successfulTests
                                     ),
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📈 Úspešnosť",
+
                                 value:
                                     `${successRate}%`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🎯 Špecializácia",
+
                                 value:
                                     specialization ||
                                     "Neuvedená",
-                                inline: false
+
+                                inline:
+                                    false
                             },
 
                             {
                                 name:
                                     "⭐ Hodnotenie",
+
                                 value:
                                     rating ||
                                     "Neuvedené",
-                                inline: false
+
+                                inline:
+                                    false
                             },
 
                             {
                                 name:
                                     "👑 Povýšil",
+
                                 value:
                                     `<@${promotedBy.id}>`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📅 Dátum",
+
                                 value:
                                     `<t:${Math.floor(
                                         now.getTime() /
                                         1000
                                     )}:F>`,
-                                inline: true
+
+                                inline:
+                                    true
                             }
                         )
+
                         .setTimestamp();
 
                 if (
@@ -1071,24 +1359,32 @@ client.on(
                 ) {
 
                     embed.addFields({
+
                         name:
                             "📝 Poznámka",
+
                         value:
                             note,
-                        inline: false
+
+                        inline:
+                            false
                     });
                 }
 
-                addOfficialWeb(embed);
+                addOfficialWeb(
+                    embed
+                );
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
+            // ==================================================
             // TESTERINFO
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -1098,7 +1394,8 @@ client.on(
                 const selectedUser =
                     interaction.options.getUser(
                         "tester"
-                    ) || interaction.user;
+                    ) ||
+                    interaction.user;
 
                 const testers =
                     loadTesters();
@@ -1114,107 +1411,157 @@ client.on(
                 ) {
 
                     return interaction.reply({
+
                         content:
                             `❌ ${selectedUser.username} nie je evidovaný ako tester.`,
-                        ephemeral: true
+
+                        ephemeral:
+                            true
                     });
                 }
 
                 const successRate =
                     data.tests > 0
+
                         ? Math.round(
                             (
                                 data.successfulTests /
                                 data.tests
-                            ) * 100
+                            ) *
+                            100
                         )
+
                         : 0;
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0x5865F2)
+
+                        .setColor(
+                            0x5865F2
+                        )
+
                         .setTitle(
                             "🧪 Tester Profile"
                         )
+
                         .setDescription(
                             `## ${selectedUser.username}`
                         )
+
                         .setThumbnail(
                             selectedUser.displayAvatarURL()
                         )
+
                         .addFields(
 
                             {
                                 name:
+                                    "🎮 Gamemode",
+
+                                value:
+                                    data.gamemode ||
+                                    "Neuvedený",
+
+                                inline:
+                                    true
+                            },
+
+                            {
+                                name:
                                     "🏅 Rank",
+
                                 value:
                                     data.rank,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "⭐ Skúsenosti",
+
                                 value:
                                     `${data.experience} XP`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🧪 Testy",
+
                                 value:
                                     String(
                                         data.tests
                                     ),
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "✅ Úspešné",
+
                                 value:
                                     String(
                                         data.successfulTests
                                     ),
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📈 Úspešnosť",
+
                                 value:
                                     `${successRate}%`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "🎯 Špecializácia",
+
                                 value:
                                     data.specialization,
-                                inline: false
+
+                                inline:
+                                    false
                             },
 
                             {
                                 name:
                                     "⭐ Hodnotenie",
+
                                 value:
                                     data.rating,
-                                inline: false
+
+                                inline:
+                                    false
                             },
 
                             {
                                 name:
                                     "👑 Povýšil",
+
                                 value:
                                     `<@${data.promotedBy.id}>`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📅 Tester od",
+
                                 value:
                                     `<t:${Math.floor(
                                         new Date(
@@ -1222,9 +1569,12 @@ client.on(
                                         ).getTime() /
                                         1000
                                     )}:R>`,
-                                inline: true
+
+                                inline:
+                                    true
                             }
                         )
+
                         .setTimestamp();
 
                 if (
@@ -1234,24 +1584,32 @@ client.on(
                 ) {
 
                     embed.addFields({
+
                         name:
                             "📝 Poznámka",
+
                         value:
                             data.note,
-                        inline: false
+
+                        inline:
+                            false
                     });
                 }
 
-                addOfficialWeb(embed);
+                addOfficialWeb(
+                    embed
+                );
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
+            // ==================================================
             // TESTERS
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -1275,6 +1633,7 @@ client.on(
                 ) {
 
                     return interaction.reply({
+
                         content:
                             "🧪 Momentálne nie sú evidovaní žiadni testeri."
                     });
@@ -1282,25 +1641,40 @@ client.on(
 
                 const list =
                     activeTesters
-                        .slice(0, 25)
+
+                        .slice(
+                            0,
+                            25
+                        )
+
                         .map(
                             (
                                 tester,
                                 index
                             ) =>
-                                `${index + 1}. <@${tester.userId}> — **${tester.rank}** • ${tester.experience} XP`
+
+                                `${index + 1}. <@${tester.userId}> — **${tester.rank}** • 🎮 ${tester.gamemode} • ${tester.experience} XP`
                         )
-                        .join("\n");
+
+                        .join(
+                            "\n"
+                        );
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0x57F287)
+
+                        .setColor(
+                            0x57F287
+                        )
+
                         .setTitle(
                             "🧪 Testeri"
                         )
+
                         .setDescription(
                             list
                         )
+
                         .setTimestamp();
 
                 embed.setFooter({
@@ -1308,16 +1682,20 @@ client.on(
                         `Počet testerov: ${activeTesters.length}`
                 });
 
-                addOfficialWeb(embed);
+                addOfficialWeb(
+                    embed
+                );
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
-            // ==========================================
+            // ==================================================
             // REMOVE TESTER
-            // ==========================================
+            // ==================================================
 
             if (
                 interaction.commandName ===
@@ -1339,20 +1717,28 @@ client.on(
                     loadTesters();
 
                 if (
-                    !testers[tester.id] ||
-                    !testers[tester.id].active
+                    !testers[
+                        tester.id
+                    ] ||
+                    !testers[
+                        tester.id
+                    ].active
                 ) {
 
                     return interaction.reply({
+
                         content:
                             "❌ Tento používateľ nie je aktívny tester.",
-                        ephemeral: true
+
+                        ephemeral:
+                            true
                     });
                 }
 
                 testers[
                     tester.id
-                ].active = false;
+                ].active =
+                    false;
 
                 testers[
                     tester.id
@@ -1381,45 +1767,65 @@ client.on(
 
                 const embed =
                     new EmbedBuilder()
-                        .setColor(0xED4245)
+
+                        .setColor(
+                            0xED4245
+                        )
+
                         .setTitle(
                             "🚫 Tester odobratý"
                         )
+
                         .setDescription(
                             `<@${tester.id}> už nie je aktívnym testerom.`
                         )
+
                         .addFields(
 
                             {
                                 name:
                                     "👤 Tester",
+
                                 value:
                                     `<@${tester.id}>`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "👑 Odobral",
+
                                 value:
                                     `<@${interaction.user.id}>`,
-                                inline: true
+
+                                inline:
+                                    true
                             },
 
                             {
                                 name:
                                     "📝 Dôvod",
+
                                 value:
                                     reason,
-                                inline: false
+
+                                inline:
+                                    false
                             }
                         )
+
                         .setTimestamp();
 
-                addOfficialWeb(embed);
+                addOfficialWeb(
+                    embed
+                );
 
                 return interaction.reply({
-                    embeds: [embed]
+                    embeds: [
+                        embed
+                    ]
                 });
             }
 
@@ -1439,9 +1845,12 @@ client.on(
             ) {
 
                 await interaction.reply({
+
                     content:
                         "❌ Nastala chyba pri vykonávaní príkazu.",
-                    ephemeral: true
+
+                    ephemeral:
+                        true
                 });
             }
         }
@@ -1454,6 +1863,7 @@ client.on(
 
 client.once(
     "ready",
+
     async () => {
 
         console.log(
@@ -1506,10 +1916,13 @@ client.once(
 // ======================================================
 
 http.createServer(
+
     (req, res) => {
 
         res.writeHead(
+
             200,
+
             {
                 "Content-Type":
                     "text/plain; charset=utf-8"
@@ -1520,9 +1933,13 @@ http.createServer(
             "CZ/SK/EN Tier Bot is online!"
         );
     }
+
 ).listen(
+
     PORT,
+
     "0.0.0.0",
+
     () => {
 
         console.log(
@@ -1539,23 +1956,27 @@ console.log(
     "🔄 Skúšam pripojiť Discord..."
 );
 
-client.login(TOKEN)
-    .then(() => {
+client.login(
+    TOKEN
+)
 
-        console.log(
-            "🔐 Discord login OK"
-        );
+.then(() => {
 
-    })
-    .catch(error => {
+    console.log(
+        "🔐 Discord login OK"
+    );
 
-        console.error(
-            "❌ Discord login zlyhal:"
-        );
+})
 
-        console.error(
-            error
-        );
+.catch(error => {
 
-        process.exit(1);
-    });
+    console.error(
+        "❌ Discord login zlyhal:"
+    );
+
+    console.error(
+        error
+    );
+
+    process.exit(1);
+});
