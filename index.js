@@ -23,6 +23,17 @@ if (!TOKEN) {
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
+client.on("debug", info => {
+  console.log("🔎 DISCORD DEBUG:", info);
+});
+
+client.on("error", error => {
+  console.error("❌ DISCORD ERROR:", error);
+});
+
+client.on("warn", info => {
+  console.warn("⚠️ DISCORD WARN:", info);
+});
 
 // ===============================
 // ŠTÝLY
