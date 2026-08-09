@@ -1,4 +1,4 @@
-```js
+
 const {
     Client,
     GatewayIntentBits,
@@ -1960,4 +1960,3 @@ client.login(TOKEN)
 
         process.exit(1);
     });
-```
