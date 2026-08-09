@@ -10,34 +10,53 @@ const {
 
 const http = require("http");
 
+// ======================================================
+// CONFIG
+// ======================================================
+
 const TOKEN = process.env.DISCORD_TOKEN;
+
 const CLIENT_ID = process.env.CLIENT_ID || "1535978914843729970";
-const GUILD_ID = "1523657617698984038";
+const GUILD_ID = process.env.GUILD_ID || "1523657617698984038";
+
 const PORT = process.env.PORT || 10000;
 
 if (!TOKEN) {
-    console.error("❌ DISCORD_TOKEN nie je nastavený!");
+    console.error("❌ DISCORD_TOKEN nie je nastavený v Environment Variables!");
     process.exit(1);
 }
 
+// ======================================================
+// DISCORD CLIENT
+// ======================================================
+
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds]
+    intents: [
+        GatewayIntentBits.Guilds
+    ]
 });
 
+// ======================================================
+// DISCORD EVENTS
+// ======================================================
+
 client.on("error", error => {
-    console.error("❌ Discord error:", error);
+    console.error("❌ Discord error:");
+    console.error(error);
 });
 
 client.on("warn", warning => {
-    console.warn("⚠️ Discord warning:", warning);
+    console.warn("⚠️ Discord warning:");
+    console.warn(warning);
 });
 
 client.on("debug", debug => {
+    // Nezobrazujeme token ani citlivé údaje
     console.log("🔎 Discord:", debug);
 });
 
 // ======================================================
-// COMMANDS
+// SLASH COMMANDS
 // ======================================================
 
 const commands = [];
@@ -46,73 +65,89 @@ const commands = [];
 // /addrank
 // ======================================================
 
+const addRankCommand = new SlashCommandBuilder()
+    .setName("addrank")
+    .setDescription("Pridá výsledok rank testu")
+    .setDefaultMemberPermissions(
+        PermissionFlagsBits.Administrator.toString()
+    )
+
+    // HRÁČ
+    .addUserOption(option =>
+        option
+            .setName("hrac")
+            .setDescription("Hráč, ktorého si testoval")
+            .setRequired(true)
+    )
+
+    // GAMEMODE - FREE TEXT
+    .addStringOption(option =>
+        option
+            .setName("gamemode")
+            .setDescription("Gamemode")
+            .setRequired(true)
+            .setMaxLength(100)
+    )
+
+    // PREVIOUS RANK - FREE TEXT
+    .addStringOption(option =>
+        option
+            .setName("previous_rank")
+            .setDescription("Predošlý rank")
+            .setRequired(true)
+            .setMaxLength(100)
+    )
+
+    // NEW RANK - FREE TEXT
+    .addStringOption(option =>
+        option
+            .setName("new_rank")
+            .setDescription("Nový rank")
+            .setRequired(true)
+            .setMaxLength(100)
+    )
+
+    // STATUS
+    .addStringOption(option =>
+        option
+            .setName("status")
+            .setDescription("Výsledok testu")
+            .setRequired(false)
+            .addChoices(
+                {
+                    name: "🟢 Rank UP",
+                    value: "UP"
+                },
+                {
+                    name: "🔴 Rank DOWN",
+                    value: "DOWN"
+                },
+                {
+                    name: "⚪ Bez zmeny",
+                    value: "SAME"
+                }
+            )
+    )
+
+    // NOTE
+    .addStringOption(option =>
+        option
+            .setName("poznamka")
+            .setDescription("Voliteľná poznámka")
+            .setRequired(false)
+            .setMaxLength(1000)
+    );
+
+commands.push(addRankCommand);
+
+// ======================================================
+// /ping
+// ======================================================
+
 commands.push(
     new SlashCommandBuilder()
-        .setName("addrank")
-        .setDescription("Pridá výsledok rank testu")
-        .setDefaultMemberPermissions(
-            PermissionFlagsBits.Administrator.toString()
-        )
-
-        .addUserOption(option =>
-            option
-                .setName("hrac")
-                .setDescription("Hráč")
-                .setRequired(true)
-        )
-
-        .addStringOption(option =>
-            option
-                .setName("gamemode")
-                .setDescription("Ľubovoľný gamemode")
-                .setRequired(true)
-                .setMaxLength(100)
-        )
-
-        .addStringOption(option =>
-            option
-                .setName("previous_rank")
-                .setDescription("Predošlý rank - voľný text")
-                .setRequired(true)
-                .setMaxLength(100)
-        )
-
-        .addStringOption(option =>
-            option
-                .setName("new_rank")
-                .setDescription("Nový rank - voľný text")
-                .setRequired(true)
-                .setMaxLength(100)
-        )
-
-        .addStringOption(option =>
-            option
-                .setName("status")
-                .setDescription("Výsledok testu")
-                .setRequired(false)
-                .addChoices(
-                    {
-                        name: "🟢 Rank UP",
-                        value: "UP"
-                    },
-                    {
-                        name: "🔴 Rank DOWN",
-                        value: "DOWN"
-                    },
-                    {
-                        name: "⚪ Bez zmeny",
-                        value: "SAME"
-                    }
-                )
-        )
-
-        .addStringOption(option =>
-            option
-                .setName("poznamka")
-                .setDescription("Voliteľná poznámka")
-                .setRequired(false)
-                .setMaxLength(1000)
-        )
+        .setName("ping")
+        .setDescription("Skontroluje stav bota")
 );
 
 // ======================================================
@@ -126,23 +161,13 @@ commands.push(
 );
 
 // ======================================================
-// /ping
-// ======================================================
-
-commands.push(
-    new SlashCommandBuilder()
-        .setName("ping")
-        .setDescription("Skontroluje stav bota")
-);
-
-// ======================================================
 // /serverinfo
 // ======================================================
 
 commands.push(
     new SlashCommandBuilder()
         .setName("serverinfo")
-        .setDescription("Informácie o serveri")
+        .setDescription("Zobrazí informácie o serveri")
 );
 
 // ======================================================
@@ -150,6 +175,7 @@ commands.push(
 // ======================================================
 
 async function registerCommands() {
+
     console.log("🔄 Registrujem slash príkazy...");
 
     const rest = new REST({
@@ -166,7 +192,7 @@ async function registerCommands() {
         }
     );
 
-    console.log("✅ Slash príkazy zaregistrované!");
+    console.log("✅ Slash príkazy boli zaregistrované!");
 }
 
 // ======================================================
@@ -182,7 +208,7 @@ client.on("interactionCreate", async interaction => {
     try {
 
         // ==================================================
-        // PING
+        // /PING
         // ==================================================
 
         if (interaction.commandName === "ping") {
@@ -191,11 +217,9 @@ client.on("interactionCreate", async interaction => {
                 .setColor(0x57F287)
                 .setTitle("🏓 Pong!")
                 .setDescription(
-                    `Bot funguje správne!\n\n📡 Ping: ${client.ws.ping}ms`
+                    `Bot funguje správne!\n\n` +
+                    `📡 Ping: ${client.ws.ping} ms`
                 )
-                .setFooter({
-                    text: "CZ/SK/EN Rank Bot"
-                })
                 .setTimestamp();
 
             return interaction.reply({
@@ -204,14 +228,14 @@ client.on("interactionCreate", async interaction => {
         }
 
         // ==================================================
-        // HELP
+        // /HELP
         // ==================================================
 
         if (interaction.commandName === "help") {
 
             const embed = new EmbedBuilder()
                 .setColor(0x5865F2)
-                .setTitle("🤖 CZ/SK/EN Rank Bot")
+                .setTitle("🤖 Rank Bot")
                 .setDescription(
                     "Minecraft Rank Test System"
                 )
@@ -224,19 +248,18 @@ client.on("interactionCreate", async interaction => {
                     {
                         name: "🛠️ Utility",
                         value:
-                            "`/ping` — stav bota\n" +
+                            "`/ping` — skontroluje stav bota\n" +
                             "`/serverinfo` — informácie o serveri\n" +
-                            "`/help` — pomoc"
+                            "`/help` — zobrazí túto pomoc"
                     },
                     {
-                        name: "📝 Ranky",
+                        name: "📝 /addrank",
                         value:
-                            "Previous Rank aj New Rank sú **voľný text**.\n" +
-                            "Nie sú obmedzené na LT1–HT5."
+                            "Gamemode, Previous Rank a New Rank sú **voľný text**."
                     }
                 )
                 .setFooter({
-                    text: "CZ/SK/EN Rank Bot"
+                    text: "Rank Bot"
                 })
                 .setTimestamp();
 
@@ -246,14 +269,16 @@ client.on("interactionCreate", async interaction => {
         }
 
         // ==================================================
-        // SERVERINFO
+        // /SERVERINFO
         // ==================================================
 
         if (interaction.commandName === "serverinfo") {
 
             if (!interaction.guild) {
+
                 return interaction.reply({
-                    content: "❌ Tento príkaz musíš použiť na serveri.",
+                    content:
+                        "❌ Tento príkaz musíš použiť na Discord serveri.",
                     ephemeral: true
                 });
             }
@@ -276,11 +301,13 @@ client.on("interactionCreate", async interaction => {
                         name: "🆔 Server ID",
                         value: guild.id,
                         inline: true
+                    },
+                    {
+                        name: "👑 Vlastník",
+                        value: `<@${guild.ownerId}>`,
+                        inline: true
                     }
                 )
-                .setFooter({
-                    text: "CZ/SK/EN Rank Bot"
-                })
                 .setTimestamp();
 
             return interaction.reply({
@@ -300,6 +327,7 @@ client.on("interactionCreate", async interaction => {
                     PermissionFlagsBits.Administrator
                 )
             ) {
+
                 return interaction.reply({
                     content:
                         "❌ Tento príkaz môže používať iba Administrator.",
@@ -309,7 +337,7 @@ client.on("interactionCreate", async interaction => {
         }
 
         // ==================================================
-        // ADDRANK
+        // /ADDRANK
         // ==================================================
 
         if (interaction.commandName === "addrank") {
@@ -335,6 +363,7 @@ client.on("interactionCreate", async interaction => {
             const tester =
                 interaction.user;
 
+            // STATUS
             let statusText = "⚪ BEZ ZMENY";
             let color = 0x5865F2;
 
@@ -348,22 +377,25 @@ client.on("interactionCreate", async interaction => {
                 color = 0xED4245;
             }
 
+            // EMBED
             const embed = new EmbedBuilder()
                 .setColor(color)
-                .setAuthor({
-                    name: "Minecraft Rank Test System"
-                })
+
                 .setTitle("🏆 Rank Test")
+
                 .setDescription(
                     `### 👤 ${player.username}\n` +
-                    "Výsledok rank testu bol zaznamenaný."
+                    `Výsledok rank testu`
                 )
+
                 .setThumbnail(
                     player.displayAvatarURL({
                         size: 256
                     })
                 )
+
                 .addFields(
+
                     {
                         name: "👤 Hráč",
                         value:
@@ -371,12 +403,14 @@ client.on("interactionCreate", async interaction => {
                             `\`${player.username}\``,
                         inline: true
                     },
+
                     {
                         name: "🎮 Gamemode",
                         value:
-                            `**${gamemode}**`,
+                            `\`${gamemode}\``,
                         inline: true
                     },
+
                     {
                         name: "🧪 Testoval",
                         value:
@@ -384,36 +418,46 @@ client.on("interactionCreate", async interaction => {
                             `\`${tester.username}\``,
                         inline: true
                     },
+
                     {
                         name: "📉 Previous Rank",
                         value:
-                            `**${previousRank}**`,
+                            `\`${previousRank}\``,
                         inline: true
                     },
+
                     {
                         name: "📈 New Rank",
                         value:
-                            `**${newRank}**`,
+                            `\`${newRank}\``,
                         inline: true
                     },
+
                     {
-                        name: "📊 Výsledok",
+                        name: "📊 Status",
                         value:
                             statusText,
                         inline: true
                     }
+
                 )
+
                 .setFooter({
-                    text: "CZ/SK/EN Rank Bot • Rank Test System"
+                    text:
+                        "Rank Bot • Minecraft Rank Test System"
                 })
+
                 .setTimestamp();
 
+            // NOTE
             if (note) {
+
                 embed.addFields({
                     name: "📝 Poznámka",
                     value: note,
                     inline: false
                 });
+
             }
 
             return interaction.reply({
@@ -430,6 +474,7 @@ client.on("interactionCreate", async interaction => {
             !interaction.replied &&
             !interaction.deferred
         ) {
+
             await interaction.reply({
                 content:
                     "❌ Nastala chyba pri vykonávaní príkazu.",
@@ -445,46 +490,61 @@ client.on("interactionCreate", async interaction => {
 
 client.once("ready", async () => {
 
-    console.log(
-        `🤖 BOT JE ONLINE ako ${client.user.tag}`
-    );
-
-    console.log(
-        `🏠 Server ID: ${GUILD_ID}`
-    );
+    console.log("");
+    console.log("========================================");
+    console.log("🤖 BOT JE ONLINE!");
+    console.log(`👤 ${client.user.tag}`);
+    console.log(`🆔 Client ID: ${CLIENT_ID}`);
+    console.log(`🏠 Guild ID: ${GUILD_ID}`);
+    console.log("========================================");
+    console.log("");
 
     client.user.setActivity(
         "Minecraft Rank System"
     );
 
     try {
+
         await registerCommands();
+
     } catch (error) {
+
         console.error(
             "❌ Registrácia slash príkazov zlyhala:"
         );
+
         console.error(error);
     }
 });
 
 // ======================================================
-// RENDER HTTP SERVER
+// HTTP SERVER FOR RENDER
 // ======================================================
 
-http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
 
     res.writeHead(200, {
-        "Content-Type": "text/plain; charset=utf-8"
+        "Content-Type":
+            "text/plain; charset=utf-8"
     });
 
-    res.end("Rank Bot is online!");
-
-}).listen(PORT, "0.0.0.0", () => {
-
-    console.log(
-        `🌐 HTTP server beží na porte ${PORT}`
+    res.end(
+        "Rank Bot is online!"
     );
+
 });
+
+server.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+
+        console.log(
+            `🌐 HTTP server beží na porte ${PORT}`
+        );
+
+    }
+);
 
 // ======================================================
 // LOGIN
@@ -494,17 +554,19 @@ console.log("🔄 Skúšam pripojiť Discord...");
 
 client.login(TOKEN)
     .then(() => {
-        console.log("🔐 Discord login OK!");
-        console.log(`🤖 Bot je prihlásený ako ${client.user.tag}`);
+
+        console.log(
+            "🔐 Discord login OK!"
+        );
+
     })
     .catch(error => {
-        console.error("❌ Discord login zlyhal!");
+
+        console.error(
+            "❌ Discord login zlyhal!"
+        );
+
         console.error(error);
+
         process.exit(1);
     });
-
-setTimeout(() => {
-    console.error("⏰ Discord login trvá viac ako 30 sekúnd!");
-    console.error("Skontroluj Discord token a Discord Developer Portal.");
-    process.exit(1);
-}, 30000);
