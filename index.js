@@ -492,19 +492,13 @@ client.once("ready", async () => {
 // LOGIN
 // ===============================
 
+console.log("🔄 Skúšam pripojiť Discord...");
+
 client.login(TOKEN)
   .then(() => {
-
     console.log("🔐 Discord login OK");
-
   })
   .catch(error => {
-
-    console.error(
-      "❌ Discord login error:",
-      error
-    );
-
-    process.exit(1);
-
+    console.error("❌ Discord login zlyhal:");
+    console.error(error);
   });
