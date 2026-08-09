@@ -1,520 +1,731 @@
 const {
-  Client,
-  GatewayIntentBits,
-  REST,
-  Routes,
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder
+    Client,
+    GatewayIntentBits,
+    REST,
+    Routes,
+    SlashCommandBuilder,
+    PermissionFlagsBits,
+    EmbedBuilder
 } = require("discord.js");
 
 const http = require("http");
 
+// ======================================================
+// NASTAVENIE
+// ======================================================
+
 const TOKEN = process.env.DISCORD_TOKEN;
+
 const CLIENT_ID = process.env.CLIENT_ID || "1535739014760632330";
+
 const GUILD_ID = "1523657617698984038";
+
 const PORT = process.env.PORT || 10000;
 
 if (!TOKEN) {
-  console.error("❌ DISCORD_TOKEN chýba!");
-  process.exit(1);
+    console.error("❌ DISCORD_TOKEN nie je nastavený!");
+    process.exit(1);
 }
 
+// ======================================================
+// DISCORD CLIENT
+// ======================================================
+
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
-});
-client.on("debug", info => {
-  console.log("🔎 DISCORD DEBUG:", info);
+    intents: [
+        GatewayIntentBits.Guilds
+    ]
 });
 
 client.on("error", error => {
-  console.error("❌ DISCORD ERROR:", error);
+    console.error("❌ Discord error:", error);
 });
 
-client.on("warn", info => {
-  console.warn("⚠️ DISCORD WARN:", info);
+client.on("warn", warning => {
+    console.warn("⚠️ Discord warning:", warning);
 });
 
-// ===============================
-// ŠTÝLY
-// ===============================
+client.on("debug", debug => {
+    console.log("🔎 Discord:", debug);
+});
 
-const styles = {
-  aurora: ["🌌 Polárna žiara", 0x57F287],
-  snow: ["❄️ Sneženie", 0xDDEEFF],
-  fire: ["🔥 Oheň", 0xFF4500],
-  ice: ["🧊 Ľad", 0x00BFFF],
-  ocean: ["🌊 Oceán", 0x0077FF],
-  space: ["🚀 Vesmír", 0x6C5CE7],
-  galaxy: ["🌠 Galaxia", 0x9B59B6],
-  sunset: ["🌅 Západ slnka", 0xFF7675],
-  storm: ["⛈️ Búrka", 0x5865F2],
-  rainbow: ["🌈 Dúha", 0xFF69B4],
-  forest: ["🌲 Les", 0x228B22],
-  desert: ["🏜️ Púšť", 0xE6A23C],
-  volcano: ["🌋 Sopka", 0xC0392B],
-  toxic: ["☢️ Toxic", 0xA3FF12],
-  cyber: ["💻 Cyber", 0x00FFCC],
-  blood: ["🩸 Blood", 0x8B0000],
-  shadow: ["🌑 Shadow", 0x202020],
-  diamond: ["💎 Diamant", 0x00FFFF],
-  gold: ["🏆 Gold", 0xFFD700],
-  minecraft: ["⛏️ Minecraft", 0x55AA55]
+// ======================================================
+// EMBED ŠTÝLY
+// ======================================================
+
+const STYLES = {
+    aurora: {
+        name: "Polárna žiara",
+        emoji: "🌌",
+        color: 0x57F287,
+        description: "Aurora Borealis"
+    },
+    snow: {
+        name: "Sneženie",
+        emoji: "❄️",
+        color: 0xDDEEFF,
+        description: "Zimná snehová atmosféra"
+    },
+    fire: {
+        name: "Oheň",
+        emoji: "🔥",
+        color: 0xFF4500,
+        description: "Horúca ohnivá atmosféra"
+    },
+    ice: {
+        name: "Ľad",
+        emoji: "🧊",
+        color: 0x00BFFF,
+        description: "Mrazivá ľadová atmosféra"
+    },
+    ocean: {
+        name: "Oceán",
+        emoji: "🌊",
+        color: 0x0077FF,
+        description: "Deep Ocean"
+    },
+    space: {
+        name: "Vesmír",
+        emoji: "🚀",
+        color: 0x6C5CE7,
+        description: "Deep Space"
+    },
+    galaxy: {
+        name: "Galaxia",
+        emoji: "🌠",
+        color: 0x9B59B6,
+        description: "Galaxy"
+    },
+    sunset: {
+        name: "Západ slnka",
+        emoji: "🌅",
+        color: 0xFF7675,
+        description: "Golden Sunset"
+    },
+    storm: {
+        name: "Búrka",
+        emoji: "⛈️",
+        color: 0x5865F2,
+        description: "Thunderstorm"
+    },
+    rainbow: {
+        name: "Dúha",
+        emoji: "🌈",
+        color: 0xFF69B4,
+        description: "Rainbow"
+    },
+    forest: {
+        name: "Les",
+        emoji: "🌲",
+        color: 0x228B22,
+        description: "Deep Forest"
+    },
+    desert: {
+        name: "Púšť",
+        emoji: "🏜️",
+        color: 0xE6A23C,
+        description: "Desert"
+    },
+    volcano: {
+        name: "Sopka",
+        emoji: "🌋",
+        color: 0xC0392B,
+        description: "Volcano"
+    },
+    toxic: {
+        name: "Toxic",
+        emoji: "☢️",
+        color: 0xA3FF12,
+        description: "Toxic Zone"
+    },
+    cyber: {
+        name: "Cyber",
+        emoji: "💻",
+        color: 0x00FFCC,
+        description: "Cyber World"
+    },
+    blood: {
+        name: "Blood",
+        emoji: "🩸",
+        color: 0x8B0000,
+        description: "Dark Blood"
+    },
+    shadow: {
+        name: "Shadow",
+        emoji: "🌑",
+        color: 0x202020,
+        description: "Dark Shadow"
+    },
+    diamond: {
+        name: "Diamant",
+        emoji: "💎",
+        color: 0x00FFFF,
+        description: "Diamond"
+    },
+    gold: {
+        name: "Gold",
+        emoji: "🏆",
+        color: 0xFFD700,
+        description: "Golden Style"
+    },
+    minecraft: {
+        name: "Minecraft",
+        emoji: "⛏️",
+        color: 0x55AA55,
+        description: "Minecraft Style"
+    }
 };
 
-// ===============================
-// PRÍKAZY
-// ===============================
+// ======================================================
+// COMMANDS
+// ======================================================
 
-const commands = [
+const commands = [];
 
-  new SlashCommandBuilder()
-    .setName("addrank")
-    .setDescription("Pridá výsledok rank testu")
-    .setDefaultMemberPermissions(
-      PermissionFlagsBits.Administrator.toString()
-    )
-    .addUserOption(o =>
-      o.setName("hrac")
-        .setDescription("Hráč")
-        .setRequired(true)
-    )
-    .addStringOption(o =>
-      o.setName("gamemode")
-        .setDescription("Ľubovoľný gamemode")
-        .setRequired(true)
-    )
-    .addStringOption(o =>
-      o.setName("previous_rank")
-        .setDescription("Predošlý rank")
-        .setRequired(true)
-    )
-    .addStringOption(o =>
-      o.setName("new_rank")
-        .setDescription("Nový rank")
-        .setRequired(true)
-    )
-    .addStringOption(o =>
-      o.setName("status")
-        .setDescription("Výsledok")
-        .setRequired(true)
-        .addChoices(
-          { name: "🟢 Rank UP", value: "UP" },
-          { name: "🔴 Rank DOWN", value: "DOWN" },
-          { name: "⚪ Bez zmeny", value: "SAME" }
+// ======================================================
+// /addrank
+// ======================================================
+
+commands.push(
+    new SlashCommandBuilder()
+        .setName("addrank")
+        .setDescription("Pridá výsledok rank testu")
+        .setDefaultMemberPermissions(
+            PermissionFlagsBits.Administrator.toString()
         )
-    )
-    .addUserOption(o =>
-      o.setName("tester")
-        .setDescription("Tester")
-        .setRequired(true)
-    )
-    .addStringOption(o =>
-      o.setName("poznamka")
-        .setDescription("Poznámka")
-        .setRequired(false)
-    ),
 
-  new SlashCommandBuilder()
+        .addUserOption(option =>
+            option
+                .setName("hrac")
+                .setDescription("Hráč")
+                .setRequired(true)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("gamemode")
+                .setDescription("Ľubovoľný gamemode")
+                .setRequired(true)
+                .setMaxLength(100)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("previous_rank")
+                .setDescription("Predošlý rank")
+                .setRequired(true)
+                .setMaxLength(50)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("new_rank")
+                .setDescription("Nový rank")
+                .setRequired(true)
+                .setMaxLength(50)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("status")
+                .setDescription("Výsledok testu")
+                .setRequired(false)
+                .addChoices(
+                    {
+                        name: "🟢 Rank UP",
+                        value: "UP"
+                    },
+                    {
+                        name: "🔴 Rank DOWN",
+                        value: "DOWN"
+                    },
+                    {
+                        name: "⚪ Bez zmeny",
+                        value: "SAME"
+                    }
+                )
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("poznamka")
+                .setDescription("Voliteľná poznámka")
+                .setRequired(false)
+                .setMaxLength(1000)
+        )
+);
+
+// ======================================================
+// /embed
+// ======================================================
+
+const embedCommand = new SlashCommandBuilder()
     .setName("embed")
     .setDescription("Vytvorí tematický embed")
     .setDefaultMemberPermissions(
-      PermissionFlagsBits.Administrator.toString()
+        PermissionFlagsBits.Administrator.toString()
     )
-    .addUserOption(o =>
-      o.setName("hrac")
-        .setDescription("Hráč")
-        .setRequired(true)
+
+    .addUserOption(option =>
+        option
+            .setName("hrac")
+            .setDescription("Hráč")
+            .setRequired(true)
     )
-    .addStringOption(o =>
-      o.setName("styl")
-        .setDescription("Štýl")
-        .setRequired(true)
-        .addChoices(
-          { name: "🌌 Polárna žiara", value: "aurora" },
-          { name: "❄️ Sneženie", value: "snow" },
-          { name: "🔥 Oheň", value: "fire" },
-          { name: "🧊 Ľad", value: "ice" },
-          { name: "🌊 Oceán", value: "ocean" },
-          { name: "🚀 Vesmír", value: "space" },
-          { name: "🌠 Galaxia", value: "galaxy" },
-          { name: "🌅 Západ slnka", value: "sunset" },
-          { name: "⛈️ Búrka", value: "storm" },
-          { name: "🌈 Dúha", value: "rainbow" },
-          { name: "🌲 Les", value: "forest" },
-          { name: "🏜️ Púšť", value: "desert" },
-          { name: "🌋 Sopka", value: "volcano" },
-          { name: "☢️ Toxic", value: "toxic" },
-          { name: "💻 Cyber", value: "cyber" },
-          { name: "🩸 Blood", value: "blood" },
-          { name: "🌑 Shadow", value: "shadow" },
-          { name: "💎 Diamant", value: "diamond" },
-          { name: "🏆 Gold", value: "gold" },
-          { name: "⛏️ Minecraft", value: "minecraft" }
-        )
+
+    .addStringOption(option =>
+        option
+            .setName("styl")
+            .setDescription("Vyber štýl")
+            .setRequired(true)
+            .addChoices(
+                { name: "🌌 Polárna žiara", value: "aurora" },
+                { name: "❄️ Sneženie", value: "snow" },
+                { name: "🔥 Oheň", value: "fire" },
+                { name: "🧊 Ľad", value: "ice" },
+                { name: "🌊 Oceán", value: "ocean" },
+                { name: "🚀 Vesmír", value: "space" },
+                { name: "🌠 Galaxia", value: "galaxy" },
+                { name: "🌅 Západ slnka", value: "sunset" },
+                { name: "⛈️ Búrka", value: "storm" },
+                { name: "🌈 Dúha", value: "rainbow" },
+                { name: "🌲 Les", value: "forest" },
+                { name: "🏜️ Púšť", value: "desert" },
+                { name: "🌋 Sopka", value: "volcano" },
+                { name: "☢️ Toxic", value: "toxic" },
+                { name: "💻 Cyber", value: "cyber" },
+                { name: "🩸 Blood", value: "blood" },
+                { name: "🌑 Shadow", value: "shadow" },
+                { name: "💎 Diamant", value: "diamond" },
+                { name: "🏆 Gold", value: "gold" },
+                { name: "⛏️ Minecraft", value: "minecraft" }
+            )
     )
-    .addStringOption(o =>
-      o.setName("text")
-        .setDescription("Text embedu")
-        .setRequired(false)
-    ),
 
-  new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Skontroluje bota"),
-
-  new SlashCommandBuilder()
-    .setName("help")
-    .setDescription("Zobrazí pomoc"),
-
-  new SlashCommandBuilder()
-    .setName("serverinfo")
-    .setDescription("Informácie o serveri"),
-
-  new SlashCommandBuilder()
-    .setName("styles")
-    .setDescription("Zobrazí štýly")
-];
-
-// ===============================
-// REGISTRÁCIA
-// ===============================
-
-async function registerCommands() {
-
-  const rest = new REST({
-    version: "10"
-  }).setToken(TOKEN);
-
-  try {
-
-    await rest.put(
-      Routes.applicationGuildCommands(
-        CLIENT_ID,
-        GUILD_ID
-      ),
-      {
-        body: commands.map(c => c.toJSON())
-      }
+    .addStringOption(option =>
+        option
+            .setName("text")
+            .setDescription("Voliteľný text")
+            .setRequired(false)
+            .setMaxLength(1500)
     );
 
-    console.log("✅ Príkazy zaregistrované!");
+commands.push(embedCommand);
 
-  } catch (error) {
+// ======================================================
+// /help
+// ======================================================
 
-    console.error("❌ Registrácia zlyhala:", error);
+commands.push(
+    new SlashCommandBuilder()
+        .setName("help")
+        .setDescription("Zobrazí pomoc")
+);
 
-  }
+// ======================================================
+// /ping
+// ======================================================
+
+commands.push(
+    new SlashCommandBuilder()
+        .setName("ping")
+        .setDescription("Skontroluje stav bota")
+);
+
+// ======================================================
+// /serverinfo
+// ======================================================
+
+commands.push(
+    new SlashCommandBuilder()
+        .setName("serverinfo")
+        .setDescription("Informácie o serveri")
+);
+
+// ======================================================
+// REGISTER COMMANDS
+// ======================================================
+
+async function registerCommands() {
+    console.log("🔄 Registrujem slash príkazy...");
+
+    const rest = new REST({
+        version: "10"
+    }).setToken(TOKEN);
+
+    await rest.put(
+        Routes.applicationGuildCommands(
+            CLIENT_ID,
+            GUILD_ID
+        ),
+        {
+            body: commands.map(command => command.toJSON())
+        }
+    );
+
+    console.log("✅ Slash príkazy zaregistrované!");
 }
 
-// ===============================
+// ======================================================
 // INTERACTIONS
-// ===============================
+// ======================================================
 
 client.on("interactionCreate", async interaction => {
 
-  if (!interaction.isChatInputCommand()) return;
-
-  try {
-
-    // PING
-    if (interaction.commandName === "ping") {
-
-      return interaction.reply({
-        content: `🏓 Pong! ${client.ws.ping} ms`
-      });
-
+    if (!interaction.isChatInputCommand()) {
+        return;
     }
 
-    // HELP
-    if (interaction.commandName === "help") {
+    try {
 
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(0x5865F2)
-            .setTitle("🤖 Rank Bot")
-            .setDescription(
-              "`/addrank` — Rank test\n" +
-              "`/embed` — Tematický embed\n" +
-              "`/styles` — Štýly\n" +
-              "`/ping` — Ping\n" +
-              "`/serverinfo` — Server info"
-            )
-        ]
-      });
+        // ==================================================
+        // PING
+        // ==================================================
 
-    }
+        if (interaction.commandName === "ping") {
 
-    // STYLES
-    if (interaction.commandName === "styles") {
+            const embed = new EmbedBuilder()
+                .setColor(0x57F287)
+                .setTitle("🏓 Pong!")
+                .setDescription(
+                    `Bot funguje správne!\n\n📡 Ping: ${client.ws.ping} ms`
+                )
+                .setTimestamp();
 
-      const text = Object.entries(styles)
-        .map(([key, value]) =>
-          `${value[0]} → \`${key}\``
-        )
-        .join("\n");
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
 
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(0x9B59B6)
-            .setTitle("🎨 Dostupné štýly")
-            .setDescription(text)
-        ]
-      });
+        // ==================================================
+        // HELP
+        // ==================================================
 
-    }
+        if (interaction.commandName === "help") {
 
-    // SERVERINFO
-    if (interaction.commandName === "serverinfo") {
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle("🤖 CZ/SK/EN Rank Bot")
+                .setDescription("Minecraft Rank Test System")
+                .addFields(
+                    {
+                        name: "🏆 Rank System",
+                        value:
+                            "`/addrank` — pridá výsledok rank testu\n" +
+                            "`/embed` — vytvorí tematický embed"
+                    },
+                    {
+                        name: "🛠️ Utility",
+                        value:
+                            "`/ping` — stav bota\n" +
+                            "`/serverinfo` — informácie o serveri\n" +
+                            "`/help` — pomoc"
+                    },
+                    {
+                        name: "🎨 Embedy",
+                        value:
+                            "`/embed` obsahuje 20 tematických štýlov."
+                    }
+                )
+                .setFooter({
+                    text: "Rank Bot"
+                })
+                .setTimestamp();
 
-      const guild = interaction.guild;
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
 
-      if (!guild) {
-        return interaction.reply({
-          content: "❌ Použi tento príkaz na serveri.",
-          ephemeral: true
-        });
-      }
+        // ==================================================
+        // SERVERINFO
+        // ==================================================
 
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(0x5865F2)
-            .setTitle(`🏰 ${guild.name}`)
-            .addFields(
-              {
-                name: "👥 Členovia",
-                value: `${guild.memberCount}`,
-                inline: true
-              },
-              {
-                name: "🆔 ID",
-                value: guild.id,
-                inline: true
-              }
-            )
-        ]
-      });
+        if (interaction.commandName === "serverinfo") {
 
-    }
-
-    // ADDRANK
-    if (interaction.commandName === "addrank") {
-
-      const player =
-        interaction.options.getUser("hrac");
-
-      const gamemode =
-        interaction.options.getString("gamemode");
-
-      const previousRank =
-        interaction.options.getString("previous_rank");
-
-      const newRank =
-        interaction.options.getString("new_rank");
-
-      const status =
-        interaction.options.getString("status");
-
-      const tester =
-        interaction.options.getUser("tester");
-
-      const note =
-        interaction.options.getString("poznamka");
-
-      let emoji = "⚪";
-      let statusText = "Bez zmeny";
-      let color = 0x99AAB5;
-
-      if (status === "UP") {
-        emoji = "🟢";
-        statusText = "Rank UP";
-        color = 0x57F287;
-      }
-
-      if (status === "DOWN") {
-        emoji = "🔴";
-        statusText = "Rank DOWN";
-        color = 0xED4245;
-      }
-
-      const embed =
-        new EmbedBuilder()
-          .setColor(color)
-          .setTitle("🏆 Rank Test")
-          .setDescription(
-            `${emoji} **${statusText}**`
-          )
-          .addFields(
-            {
-              name: "👤 Hráč",
-              value: `${player}\n\`${player.username}\``,
-              inline: true
-            },
-            {
-              name: "🎮 Gamemode",
-              value: gamemode,
-              inline: true
-            },
-            {
-              name: "🧪 Tester",
-              value: `${tester}\n\`${tester.username}\``,
-              inline: true
-            },
-            {
-              name: "📉 Previous Rank",
-              value: previousRank,
-              inline: true
-            },
-            {
-              name: "📈 New Rank",
-              value: newRank,
-              inline: true
-            },
-            {
-              name: "📊 Status",
-              value: `${emoji} ${statusText}`,
-              inline: true
+            if (!interaction.guild) {
+                return interaction.reply({
+                    content: "❌ Tento príkaz musíš použiť na serveri.",
+                    ephemeral: true
+                });
             }
-          )
-          .setThumbnail(
-            player.displayAvatarURL({
-              size: 256
-            })
-          )
-          .setFooter({
-            text: "Rank Bot • Rank Test System"
-          })
-          .setTimestamp();
 
-      if (note) {
-        embed.addFields({
-          name: "📝 Poznámka",
-          value: note
-        });
-      }
+            const guild = interaction.guild;
 
-      return interaction.reply({
-        embeds: [embed]
-      });
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle(`🏰 ${guild.name}`)
+                .setThumbnail(
+                    guild.iconURL() || undefined
+                )
+                .addFields(
+                    {
+                        name: "👥 Členovia",
+                        value: String(guild.memberCount),
+                        inline: true
+                    },
+                    {
+                        name: "🆔 Server ID",
+                        value: guild.id,
+                        inline: true
+                    }
+                )
+                .setTimestamp();
 
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
+
+        // ==================================================
+        // ADMIN CHECK
+        // ==================================================
+
+        if (
+            interaction.commandName === "addrank" ||
+            interaction.commandName === "embed"
+        ) {
+
+            if (
+                !interaction.memberPermissions ||
+                !interaction.memberPermissions.has(
+                    PermissionFlagsBits.Administrator
+                )
+            ) {
+                return interaction.reply({
+                    content:
+                        "❌ Tento príkaz môže používať iba Administrator.",
+                    ephemeral: true
+                });
+            }
+        }
+
+        // ==================================================
+        // ADDRANK
+        // ==================================================
+
+        if (interaction.commandName === "addrank") {
+
+            const player =
+                interaction.options.getUser("hrac");
+
+            const gamemode =
+                interaction.options.getString("gamemode");
+
+            const previousRank =
+                interaction.options.getString("previous_rank");
+
+            const newRank =
+                interaction.options.getString("new_rank");
+
+            const status =
+                interaction.options.getString("status") || "SAME";
+
+            const note =
+                interaction.options.getString("poznamka");
+
+            const tester =
+                interaction.user;
+
+            let statusText = "⚪ BEZ ZMENY";
+            let color = 0x5865F2;
+
+            if (status === "UP") {
+                statusText = "🟢 RANK UP";
+                color = 0x57F287;
+            }
+
+            if (status === "DOWN") {
+                statusText = "🔴 RANK DOWN";
+                color = 0xED4245;
+            }
+
+            const embed = new EmbedBuilder()
+                .setColor(color)
+                .setTitle("🏆 Rank Test")
+                .setDescription(
+                    `### 👤 ${player.username}\n` +
+                    "Výsledok rank testu"
+                )
+                .setThumbnail(
+                    player.displayAvatarURL()
+                )
+                .addFields(
+                    {
+                        name: "👤 Hráč",
+                        value:
+                            `<@${player.id}>\n\`${player.username}\``,
+                        inline: true
+                    },
+                    {
+                        name: "🎮 Gamemode",
+                        value: gamemode,
+                        inline: true
+                    },
+                    {
+                        name: "🧪 Tester",
+                        value:
+                            `<@${tester.id}>\n\`${tester.username}\``,
+                        inline: true
+                    },
+                    {
+                        name: "📉 Previous Rank",
+                        value: previousRank,
+                        inline: true
+                    },
+                    {
+                        name: "📈 New Rank",
+                        value: newRank,
+                        inline: true
+                    },
+                    {
+                        name: "📊 Status",
+                        value: statusText,
+                        inline: true
+                    }
+                )
+                .setFooter({
+                    text: "Rank Bot • Rank Test System"
+                })
+                .setTimestamp();
+
+            if (note) {
+                embed.addFields({
+                    name: "📝 Poznámka",
+                    value: note,
+                    inline: false
+                });
+            }
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
+
+        // ==================================================
+        // EMBED
+        // ==================================================
+
+        if (interaction.commandName === "embed") {
+
+            const player =
+                interaction.options.getUser("hrac");
+
+            const styleKey =
+                interaction.options.getString("styl");
+
+            const customText =
+                interaction.options.getString("text");
+
+            const style =
+                STYLES[styleKey];
+
+            if (!style) {
+                return interaction.reply({
+                    content: "❌ Neznámy štýl.",
+                    ephemeral: true
+                });
+            }
+
+            const description =
+                customText ||
+                `${style.description}\n\n👤 Hráč: <@${player.id}>`;
+
+            const embed = new EmbedBuilder()
+                .setColor(style.color)
+                .setTitle(
+                    `${style.emoji} ${style.name}`
+                )
+                .setDescription(description)
+                .setThumbnail(
+                    player.displayAvatarURL()
+                )
+                .setFooter({
+                    text: `Minecraft • ${style.name}`
+                })
+                .setTimestamp();
+
+            return interaction.reply({
+                embeds: [embed]
+            });
+        }
+
+    } catch (error) {
+
+        console.error("❌ Interaction error:");
+        console.error(error);
+
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({
+                content:
+                    "❌ Nastala chyba pri vykonávaní príkazu.",
+                ephemeral: true
+            });
+        }
     }
-
-    // EMBED
-    if (interaction.commandName === "embed") {
-
-      const player =
-        interaction.options.getUser("hrac");
-
-      const styleKey =
-        interaction.options.getString("styl");
-
-      const customText =
-        interaction.options.getString("text");
-
-      const style =
-        styles[styleKey];
-
-      if (!style) {
-
-        return interaction.reply({
-          content: "❌ Neznámy štýl.",
-          ephemeral: true
-        });
-
-      }
-
-      const embed =
-        new EmbedBuilder()
-          .setColor(style[1])
-          .setTitle(style[0])
-          .setDescription(
-            customText ||
-            `✨ Tematický embed pre ${player}`
-          )
-          .setThumbnail(
-            player.displayAvatarURL({
-              size: 256
-            })
-          )
-          .setFooter({
-            text: "Rank Bot"
-          })
-          .setTimestamp();
-
-      return interaction.reply({
-        embeds: [embed]
-      });
-
-    }
-
-  } catch (error) {
-
-    console.error("❌ Interaction error:", error);
-
-    if (!interaction.replied) {
-
-      await interaction.reply({
-        content: "❌ Nastala chyba.",
-        ephemeral: true
-      }).catch(() => {});
-
-    }
-
-  }
-
 });
 
-// ===============================
-// RENDER SERVER
-// ===============================
-
-http.createServer((req, res) => {
-
-  res.writeHead(200, {
-    "Content-Type": "text/plain"
-  });
-
-  res.end("Rank Bot is online!");
-
-}).listen(PORT, "0.0.0.0", () => {
-
-  console.log(`🌐 HTTP server beží na porte ${PORT}`);
-
-});
-
-// ===============================
+// ======================================================
 // READY
-// ===============================
+// ======================================================
 
 client.once("ready", async () => {
 
-  console.log(
-    `🤖 Bot je online ako ${client.user.tag}`
-  );
+    console.log(
+        `🤖 BOT JE ONLINE ako ${client.user.tag}`
+    );
 
-  await registerCommands();
+    console.log(
+        `🏠 Server ID: ${GUILD_ID}`
+    );
 
+    client.user.setActivity(
+        "Minecraft Rank System"
+    );
+
+    try {
+        await registerCommands();
+    } catch (error) {
+        console.error(
+            "❌ Registrácia slash príkazov zlyhala:"
+        );
+        console.error(error);
+    }
 });
 
-// ===============================
+// ======================================================
+// RENDER HTTP SERVER
+// ======================================================
+
+http.createServer((req, res) => {
+
+    res.writeHead(200, {
+        "Content-Type": "text/plain; charset=utf-8"
+    });
+
+    res.end("Rank Bot is online!");
+
+}).listen(PORT, "0.0.0.0", () => {
+
+    console.log(
+        `🌐 HTTP server beží na porte ${PORT}`
+    );
+});
+
+// ======================================================
 // LOGIN
-// ===============================
+// ======================================================
 
 console.log("🔄 Skúšam pripojiť Discord...");
 
 client.login(TOKEN)
-  .then(() => {
-    console.log("🔐 Discord login OK");
-  })
-  .catch(error => {
-    console.error("❌ Discord login zlyhal:", error);
-  });
-
-setTimeout(() => {
-  console.error("⏰ Discord login trvá príliš dlho.");
-  console.error("Skontroluj DISCORD_TOKEN a pripojenie k Discordu.");
-  process.exit(1);
-}, 30000);
+    .then(() => {
+        console.log("🔐 Discord login OK");
+    })
+    .catch(error => {
+        console.error(
+            "❌ Discord login zlyhal:"
+        );
+        console.error(error);
+        process.exit(1);
+    });
