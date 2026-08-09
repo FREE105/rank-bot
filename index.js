@@ -16,13 +16,17 @@ const GUILD_ID = "1523657617698984038";
 const PORT = process.env.PORT || 10000;
 
 if (!TOKEN) {
-    console.error("DISCORD_TOKEN is missing!");
+    console.error("DISCORD_TOKEN is not set!");
     process.exit(1);
 }
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
+
+// ======================================================
+// EMBED STYLES
+// ======================================================
 
 const STYLES = {
     aurora: {
@@ -151,19 +155,27 @@ const STYLES = {
 // COMMANDS
 // ======================================================
 
-const commands = [
+const commands = [];
+
+// ======================================================
+// /addrank
+// ======================================================
+
+commands.push(
     new SlashCommandBuilder()
         .setName("addrank")
         .setDescription("Pridá výsledok rank testu")
         .setDefaultMemberPermissions(
             PermissionFlagsBits.Administrator.toString()
         )
+
         .addUserOption(option =>
             option
                 .setName("hrac")
                 .setDescription("Hráč")
                 .setRequired(true)
         )
+
         .addStringOption(option =>
             option
                 .setName("gamemode")
@@ -171,6 +183,7 @@ const commands = [
                 .setRequired(true)
                 .setMaxLength(100)
         )
+
         .addStringOption(option =>
             option
                 .setName("previous_rank")
@@ -178,6 +191,7 @@ const commands = [
                 .setRequired(true)
                 .setMaxLength(50)
         )
+
         .addStringOption(option =>
             option
                 .setName("new_rank")
@@ -185,6 +199,7 @@ const commands = [
                 .setRequired(true)
                 .setMaxLength(50)
         )
+
         .addStringOption(option =>
             option
                 .setName("status")
@@ -205,36 +220,46 @@ const commands = [
                     }
                 )
         )
+
         .addUserOption(option =>
             option
                 .setName("tester")
                 .setDescription("Tester")
                 .setRequired(true)
         )
+
         .addStringOption(option =>
             option
                 .setName("poznamka")
                 .setDescription("Voliteľná poznámka")
                 .setRequired(false)
                 .setMaxLength(1000)
-        ),
+        )
+);
 
+// ======================================================
+// /embed
+// ======================================================
+
+commands.push(
     new SlashCommandBuilder()
         .setName("embed")
-        .setDescription("Vytvorí tematický embed")
+        .setDescription("Vytvorí tematický Discord embed")
         .setDefaultMemberPermissions(
             PermissionFlagsBits.Administrator.toString()
         )
+
         .addUserOption(option =>
             option
                 .setName("hrac")
                 .setDescription("Komu je embed určený")
                 .setRequired(true)
         )
+
         .addStringOption(option =>
             option
                 .setName("styl")
-                .setDescription("Vyber štýl")
+                .setDescription("Vyber tematický štýl")
                 .setRequired(true)
                 .addChoices(
                     { name: "🌌 Polárna žiara", value: "aurora" },
@@ -259,14 +284,21 @@ const commands = [
                     { name: "⛏️ Minecraft", value: "minecraft" }
                 )
         )
+
         .addStringOption(option =>
             option
                 .setName("text")
                 .setDescription("Voliteľný text")
                 .setRequired(false)
                 .setMaxLength(1500)
-        ),
+        )
+);
 
+// ======================================================
+// OTHER COMMANDS
+// ======================================================
+
+commands.push(
     new SlashCommandBuilder()
         .setName("help")
         .setDescription("Zobrazí pomoc"),
@@ -281,8 +313,8 @@ const commands = [
 
     new SlashCommandBuilder()
         .setName("styles")
-        .setDescription("Zobrazí všetky štýly")
-];
+        .setDescription("Zobrazí všetky dostupné embed štýly")
+);
 
 // ======================================================
 // REGISTER COMMANDS
@@ -307,11 +339,10 @@ async function registerCommands() {
             }
         );
 
-        console.log("✅ Slash príkazy zaregistrované!");
+        console.log("✅ Slash príkazy úspešne zaregistrované!");
     } catch (error) {
-        console.error("❌ Registrácia príkazov zlyhala:");
+        console.error("❌ Chyba pri registrácii príkazov:");
         console.error(error);
-        console.log("⚠️ Bot zostáva online.");
     }
 }
 
@@ -320,6 +351,7 @@ async function registerCommands() {
 // ======================================================
 
 client.on("interactionCreate", async interaction => {
+
     if (!interaction.isChatInputCommand()) {
         return;
     }
@@ -331,6 +363,7 @@ client.on("interactionCreate", async interaction => {
         // ==================================================
 
         if (interaction.commandName === "ping") {
+
             const embed = new EmbedBuilder()
                 .setColor(0x57F287)
                 .setTitle("🏓 Pong!")
@@ -352,6 +385,7 @@ client.on("interactionCreate", async interaction => {
         // ==================================================
 
         if (interaction.commandName === "help") {
+
             const embed = new EmbedBuilder()
                 .setColor(0x5865F2)
                 .setTitle("🤖 Rank Bot")
@@ -360,13 +394,13 @@ client.on("interactionCreate", async interaction => {
                     {
                         name: "🏆 Rank System",
                         value:
-                            "`/addrank` — pridá výsledok rank testu",
+                            "`/addrank` — výsledok rank testu",
                         inline: false
                     },
                     {
                         name: "🎨 Embed System",
                         value:
-                            "`/embed` — vytvorí tematický embed\n" +
+                            "`/embed` — tematický embed\n" +
                             "`/styles` — všetky štýly",
                         inline: false
                     },
@@ -374,7 +408,8 @@ client.on("interactionCreate", async interaction => {
                         name: "🛠️ Utility",
                         value:
                             "`/ping` — stav bota\n" +
-                            "`/serverinfo` — informácie o serveri",
+                            "`/serverinfo` — informácie o serveri\n" +
+                            "`/help` — pomoc",
                         inline: false
                     }
                 )
@@ -393,9 +428,11 @@ client.on("interactionCreate", async interaction => {
         // ==================================================
 
         if (interaction.commandName === "styles") {
+
             let text = "";
 
             for (const key of Object.keys(STYLES)) {
+
                 const style = STYLES[key];
 
                 text +=
@@ -409,173 +446,4 @@ client.on("interactionCreate", async interaction => {
                 .setFooter({
                     text: "Použi /embed"
                 })
-                .setTimestamp();
-
-            return await interaction.reply({
-                embeds: [embed]
-            });
-        }
-
-        // ==================================================
-        // SERVERINFO
-        // ==================================================
-
-        if (interaction.commandName === "serverinfo") {
-            if (!interaction.guild) {
-                return await interaction.reply({
-                    content:
-                        "❌ Tento príkaz musíš použiť na serveri.",
-                    ephemeral: true
-                });
-            }
-
-            const guild = interaction.guild;
-
-            const embed = new EmbedBuilder()
-                .setColor(0x5865F2)
-                .setTitle(`🏰 ${guild.name}`)
-                .setThumbnail(
-                    guild.iconURL() || undefined
-                )
-                .addFields(
-                    {
-                        name: "👥 Členovia",
-                        value: String(guild.memberCount),
-                        inline: true
-                    },
-                    {
-                        name: "🆔 Server ID",
-                        value: guild.id,
-                        inline: true
-                    }
-                )
-                .setTimestamp();
-
-            return await interaction.reply({
-                embeds: [embed]
-            });
-        }
-
-        // ==================================================
-        // ADDRANK
-        // ==================================================
-
-        if (interaction.commandName === "addrank") {
-
-            const player =
-                interaction.options.getUser("hrac");
-
-            const gamemode =
-                interaction.options.getString("gamemode");
-
-            const previousRank =
-                interaction.options.getString("previous_rank");
-
-            const newRank =
-                interaction.options.getString("new_rank");
-
-            const status =
-                interaction.options.getString("status");
-
-            const tester =
-                interaction.options.getUser("tester");
-
-            const note =
-                interaction.options.getString("poznamka");
-
-            let statusText = "Bez zmeny";
-            let statusEmoji = "⚪";
-            let color = 0x99AAB5;
-
-            if (status === "UP") {
-                statusText = "Rank UP";
-                statusEmoji = "🟢";
-                color = 0x57F287;
-            }
-
-            if (status === "DOWN") {
-                statusText = "Rank DOWN";
-                statusEmoji = "🔴";
-                color = 0xED4245;
-            }
-
-            const embed = new EmbedBuilder()
-                .setColor(color)
-                .setTitle("🏆 Rank Test")
-                .setDescription(
-                    `${statusEmoji} **${statusText}**`
-                )
-                .setThumbnail(
-                    player.displayAvatarURL({
-                        size: 256
-                    })
-                )
-                .addFields(
-                    {
-                        name: "👤 Hráč",
-                        value:
-                            `${player}\n\`${player.username}\``,
-                        inline: true
-                    },
-                    {
-                        name: "🎮 Gamemode",
-                        value: gamemode,
-                        inline: true
-                    },
-                    {
-                        name: "🧪 Tester",
-                        value:
-                            `${tester}\n\`${tester.username}\``,
-                        inline: true
-                    },
-                    {
-                        name: "📉 Previous Rank",
-                        value: previousRank,
-                        inline: true
-                    },
-                    {
-                        name: "📈 New Rank",
-                        value: newRank,
-                        inline: true
-                    },
-                    {
-                        name: "📊 Status",
-                        value:
-                            `${statusEmoji} ${statusText}`,
-                        inline: true
-                    }
-                );
-
-            if (note) {
-                embed.addFields({
-                    name: "📝 Poznámka",
-                    value: note,
-                    inline: false
-                });
-            }
-
-            embed
-                .setFooter({
-                    text: "Rank Bot • Rank Test System"
-                })
-                .setTimestamp();
-
-            return await interaction.reply({
-                embeds: [embed]
-            });
-        }
-
-        // ==================================================
-        // EMBED
-        // ==================================================
-
-        if (interaction.commandName === "embed") {
-
-            const player =
-                interaction.options.getUser("hrac");
-
-            const styleKey =
-                interaction.options.getString("styl");
-
-            const customText =
-                interaction
+                .setTimestamp
