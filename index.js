@@ -5,7 +5,8 @@ const {
     Routes,
     SlashCommandBuilder,
     PermissionFlagsBits,
-    EmbedBuilder
+    EmbedBuilder,
+    ChannelType
 } = require("discord.js");
 
 const fs = require("fs");
@@ -32,7 +33,11 @@ if (!TOKEN) {
 // =====================================================
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
 
 // =====================================================
@@ -48,7 +53,11 @@ function loadDB() {
                     {
                         users: {},
                         testers: {},
-                        ranks: []
+                        ranks: [],
+                        logs: {
+                            channelId: null,
+                            roleId: null
+                        }
                     },
                     null,
                     2
@@ -62,16 +71,41 @@ function loadDB() {
 
         if (!db.users) db.users = {};
         if (!db.testers) db.testers = {};
-        if (!db.ranks) db.ranks = [];
+        if (!db.ranks) db.ranks = {};
+
+        if (!Array.isArray(db.ranks)) {
+            db.ranks = [];
+        }
+
+        if (!db.logs) {
+            db.logs = {
+                channelId: null,
+                roleId: null
+            };
+        }
+
+        if (!("channelId" in db.logs)) {
+            db.logs.channelId = null;
+        }
+
+        if (!("roleId" in db.logs)) {
+            db.logs.roleId = null;
+        }
 
         return db;
+
     } catch (error) {
+
         console.error("❌ Chyba databázy:", error);
 
         return {
             users: {},
             testers: {},
-            ranks: []
+            ranks: [],
+            logs: {
+                channelId: null,
+                roleId: null
+            }
         };
     }
 }
@@ -88,6 +122,7 @@ function saveDB(db) {
 // =====================================================
 
 const THEMES = {
+
     classic: {
         name: "Classic",
         emoji: "⬜",
@@ -108,7 +143,7 @@ const THEMES = {
         emoji: "🔥",
         color: 0xFF4500,
         image:
-            "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85"
+            "https://images.unsplash.com/photo-1473876637954-4b493d59fd97?auto=format&fit=crop&w=1600&q=85"
     },
 
     snow: {
@@ -116,7 +151,7 @@ const THEMES = {
         emoji: "❄️",
         color: 0xDDEEFF,
         image:
-            "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=1600&q=85"
+            "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?auto=format&fit=crop&w=1600&q=85"
     },
 
     ice: {
@@ -124,7 +159,7 @@ const THEMES = {
         emoji: "🧊",
         color: 0x74C0FC,
         image:
-            "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?auto=format&fit=crop&w=1600&q=85"
+            "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=1600&q=85"
     },
 
     ocean: {
@@ -148,7 +183,7 @@ const THEMES = {
         emoji: "🌋",
         color: 0xC0392B,
         image:
-            "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1600&q=85"
+            "https://images.unsplash.com/photo-1495195134817-aeb325a55b65?auto=format&fit=crop&w=1600&q=85"
     },
 
     lightning: {
@@ -156,7 +191,7 @@ const THEMES = {
         emoji: "⚡",
         color: 0xF1C40F,
         image:
-            "https://images.unsplash.com/photo-1605727216801-e27ce1d0f34c?auto=format&fit=crop&w=1600&q=85"
+            "https://images.unsplash.com/photo-1594156596782-656c93e4d504?auto=format&fit=crop&w=1600&q=85"
     },
 
     meteor: {
@@ -261,6 +296,7 @@ const THEMES = {
 // =====================================================
 
 function getUserTheme(userId) {
+
     const db = loadDB();
 
     const themeKey =
@@ -281,6 +317,7 @@ function createEmbed({
     fields = [],
     thumbnail = null
 }) {
+
     const theme = getUserTheme(userId);
 
     const embed = new EmbedBuilder()
@@ -316,6 +353,89 @@ function createEmbed({
     embed.setTimestamp();
 
     return embed;
+}
+
+// =====================================================
+// LOGS
+// =====================================================
+
+async function sendLog({
+    guild,
+    title,
+    description,
+    color = 0x5865F2,
+    fields = []
+}) {
+
+    try {
+
+        const db = loadDB();
+
+        const channelId =
+            db.logs?.channelId;
+
+        if (!channelId) {
+            return;
+        }
+
+        const channel =
+            guild.channels.cache.get(channelId);
+
+        if (!channel) {
+            return;
+        }
+
+        if (
+            channel.type !== ChannelType.GuildText &&
+            channel.type !== ChannelType.GuildAnnouncement
+        ) {
+            return;
+        }
+
+        const embed =
+            new EmbedBuilder()
+                .setTitle(title)
+                .setColor(color)
+                .setDescription(description || null)
+                .addFields(fields)
+                .setFooter({
+                    text: "CZ/SK/EN Global Ranking • Logs"
+                })
+                .setTimestamp();
+
+        await channel.send({
+            embeds: [embed]
+        });
+
+    } catch (error) {
+
+        console.error(
+            "❌ Nepodarilo sa odoslať logs:",
+            error
+        );
+    }
+}
+
+// =====================================================
+// CHECK LOGS ROLE
+// =====================================================
+
+function hasLogsRole(interaction) {
+
+    const db = loadDB();
+
+    const roleId =
+        db.logs?.roleId;
+
+    if (!roleId) {
+        return false;
+    }
+
+    return Boolean(
+        interaction.member?.roles?.cache?.has(
+            roleId
+        )
+    );
 }
 
 // =====================================================
@@ -355,7 +475,7 @@ const commands = [
                     { name: "🌲 Forest — les", value: "forest" },
                     { name: "🌋 Volcano — sopka", value: "volcano" },
                     { name: "⚡ Lightning — blesky", value: "lightning" },
-                    { name: "☄️ Meteor — meteor", value: "meteor", },
+                    { name: "☄️ Meteor — meteor", value: "meteor" },
                     { name: "🌑 Shadow — temná noc", value: "shadow" },
                     { name: "💎 Diamond — diamant", value: "diamond" },
                     { name: "🥇 Gold — zlato", value: "gold" },
@@ -375,6 +495,32 @@ const commands = [
                 .setName("user")
                 .setDescription("Používateľ, ktorému nastavíš motív")
                 .setRequired(false)
+        ),
+
+    // =================================================
+    // ADD LOGS
+    // =================================================
+
+    new SlashCommandBuilder()
+        .setName("addlogs")
+        .setDescription("Nastaví logs rolu a logs kanál")
+
+        .addRoleOption(option =>
+            option
+                .setName("role")
+                .setDescription("Rola, ktorá môže používať /addlogs")
+                .setRequired(true)
+        )
+
+        .addChannelOption(option =>
+            option
+                .setName("channel")
+                .setDescription("Kanál pre logs")
+                .addChannelTypes(
+                    ChannelType.GuildText,
+                    ChannelType.GuildAnnouncement
+                )
+                .setRequired(true)
         ),
 
     // =================================================
@@ -560,15 +706,19 @@ const commands = [
 // =====================================================
 
 async function registerCommands() {
+
     const rest = new REST({
         version: "10"
     }).setToken(TOKEN);
 
-    const commandData = commands.map(
-        command => command.toJSON()
-    );
+    const commandData =
+        commands.map(
+            command => command.toJSON()
+        );
 
-    console.log("🔄 Registrujem slash príkazy...");
+    console.log(
+        "🔄 Registrujem slash príkazy..."
+    );
 
     await rest.put(
         Routes.applicationGuildCommands(
@@ -602,14 +752,99 @@ client.once("ready", async () => {
     );
 
     try {
+
         await registerCommands();
+
     } catch (error) {
+
         console.error(
             "❌ REGISTRÁCIA PRÍKAZOV ZLYHALA:"
         );
+
         console.error(error);
     }
 });
+
+// =====================================================
+// MESSAGE DELETE LOG
+// =====================================================
+
+client.on(
+    "messageDelete",
+    async message => {
+
+        try {
+
+            if (!message.guild) {
+                return;
+            }
+
+            if (message.author?.bot) {
+                return;
+            }
+
+            let content =
+                message.content || "None";
+
+            if (content.length > 1000) {
+                content =
+                    content.substring(0, 1000) +
+                    "...";
+            }
+
+            const channelName =
+                message.channel
+                    ? `<#${message.channel.id}>`
+                    : "None";
+
+            await sendLog({
+
+                guild: message.guild,
+
+                title:
+                    "🗑️ SPRÁVA ODSTRÁNENÁ",
+
+                description:
+                    `Správa používateľa <@${message.author?.id || "unknown"}> bola odstránená.`,
+
+                color:
+                    0xED4245,
+
+                fields: [
+
+                    {
+                        name: "👤 Používateľ",
+                        value:
+                            message.author
+                                ? `<@${message.author.id}>`
+                                : "None",
+                        inline: true
+                    },
+
+                    {
+                        name: "📍 Kanál",
+                        value:
+                            channelName,
+                        inline: true
+                    },
+
+                    {
+                        name: "💬 Obsah",
+                        value:
+                            content
+                    }
+                ]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "❌ Chyba messageDelete logu:",
+                error
+            );
+        }
+    }
+);
 
 // =====================================================
 // INTERACTIONS
@@ -632,10 +867,35 @@ client.on(
             if (interaction.commandName === "ping") {
 
                 const embed = createEmbed({
-                    userId: interaction.user.id,
-                    title: "🏓 PONG!",
+
+                    userId:
+                        interaction.user.id,
+
+                    title:
+                        "🏓 PONG!",
+
                     description:
                         `Bot funguje!\n\nLatency: **${client.ws.ping} ms**`
+                });
+
+                await sendLog({
+
+                    guild:
+                        interaction.guild,
+
+                    title:
+                        "⚡ PRÍKAZ POUŽITÝ",
+
+                    description:
+                        `Používateľ použil **/ping**.`,
+
+                    fields: [
+                        {
+                            name: "👤 Používateľ",
+                            value:
+                                `<@${interaction.user.id}>`
+                        }
+                    ]
                 });
 
                 return interaction.reply({
@@ -650,7 +910,9 @@ client.on(
             if (interaction.commandName === "help") {
 
                 const embed = createEmbed({
-                    userId: interaction.user.id,
+
+                    userId:
+                        interaction.user.id,
 
                     title:
                         "🏆 CZ/SK/EN GLOBAL RANKING",
@@ -659,36 +921,49 @@ client.on(
                         "Dostupné príkazy:",
 
                     fields: [
+
                         {
                             name: "🎨 /embed",
                             value:
                                 "Nastaví osobný embed motív."
                         },
+
+                        {
+                            name: "📋 /addlogs",
+                            value:
+                                "Nastaví logs rolu a logs kanál."
+                        },
+
                         {
                             name: "🏆 /addrank",
                             value:
                                 "Pridá výsledok rank testu."
                         },
+
                         {
                             name: "🧪 /settester",
                             value:
                                 "Povýši používateľa na testera."
                         },
+
                         {
                             name: "👤 /testerinfo",
                             value:
                                 "Zobrazí profil testera."
                         },
+
                         {
                             name: "👥 /testers",
                             value:
                                 "Zobrazí aktívnych testerov."
                         },
+
                         {
                             name: "🚫 /removetester",
                             value:
                                 "Odoberie testerovi status."
                         },
+
                         {
                             name: "🏓 /ping",
                             value:
@@ -703,10 +978,159 @@ client.on(
             }
 
             // =================================================
+            // ADD LOGS
+            // =================================================
+
+            if (
+                interaction.commandName ===
+                "addlogs"
+            ) {
+
+                const isAdmin =
+                    interaction.memberPermissions?.has(
+                        PermissionFlagsBits.Administrator
+                    );
+
+                const alreadyHasLogsRole =
+                    hasLogsRole(interaction);
+
+                if (
+                    !isAdmin &&
+                    !alreadyHasLogsRole
+                ) {
+
+                    return interaction.reply({
+
+                        content:
+                            "❌ Tento príkaz môže používať iba Administrator alebo používateľ s Logs rolou.",
+
+                        ephemeral: true
+                    });
+                }
+
+                const role =
+                    interaction.options.getRole(
+                        "role",
+                        true
+                    );
+
+                const channel =
+                    interaction.options.getChannel(
+                        "channel",
+                        true
+                    );
+
+                const db = loadDB();
+
+                db.logs.roleId =
+                    role.id;
+
+                db.logs.channelId =
+                    channel.id;
+
+                saveDB(db);
+
+                const embed =
+                    new EmbedBuilder()
+
+                        .setTitle(
+                            "📋 LOGS NASTAVENÉ"
+                        )
+
+                        .setColor(
+                            0x57F287
+                        )
+
+                        .setDescription(
+                            "Logs systém bol úspešne nastavený."
+                        )
+
+                        .addFields(
+
+                            {
+                                name:
+                                    "🛡️ Logs rola",
+                                value:
+                                    `<@&${role.id}>`,
+                                inline: true
+                            },
+
+                            {
+                                name:
+                                    "📁 Logs kanál",
+                                value:
+                                    `<#${channel.id}>`,
+                                inline: true
+                            },
+
+                            {
+                                name:
+                                    "👤 Nastavil",
+                                value:
+                                    `<@${interaction.user.id}>`
+                            }
+
+                        )
+
+                        .setTimestamp();
+
+                await interaction.reply({
+
+                    embeds: [embed],
+
+                    ephemeral: true
+                });
+
+                await sendLog({
+
+                    guild:
+                        interaction.guild,
+
+                    title:
+                        "📋 LOGS NASTAVENÉ",
+
+                    description:
+                        `Používateľ nastavil nový logs systém.`,
+
+                    color:
+                        0x57F287,
+
+                    fields: [
+
+                        {
+                            name:
+                                "👤 Používateľ",
+                            value:
+                                `<@${interaction.user.id}>`
+                        },
+
+                        {
+                            name:
+                                "🛡️ Rola",
+                            value:
+                                `<@&${role.id}>`
+                        },
+
+                        {
+                            name:
+                                "📁 Kanál",
+                            value:
+                                `<#${channel.id}>`
+                        }
+                    ]
+                });
+
+                return;
+            }
+
+            // =================================================
             // EMBED
             // =================================================
 
-            if (interaction.commandName === "embed") {
+            if (
+                interaction.commandName ===
+                "embed"
+            ) {
 
                 const themeKey =
                     interaction.options.getString(
@@ -715,31 +1139,45 @@ client.on(
                     );
 
                 const target =
-                    interaction.options.getUser("user") ||
+                    interaction.options.getUser(
+                        "user"
+                    ) ||
                     interaction.user;
 
-                const theme = THEMES[themeKey];
+                const theme =
+                    THEMES[themeKey];
 
                 if (!theme) {
+
                     return interaction.reply({
-                        content: "❌ Neplatný motív.",
+
+                        content:
+                            "❌ Neplatný motív.",
+
                         ephemeral: true
                     });
                 }
 
-                // Ak nastavuješ motív niekomu inému,
-                // musíš byť Administrator.
+                // =================================================
+                // OTHER USER ADMIN CHECK
+                // =================================================
 
-                if (target.id !== interaction.user.id) {
+                if (
+                    target.id !==
+                    interaction.user.id
+                ) {
 
                     if (
                         !interaction.memberPermissions?.has(
                             PermissionFlagsBits.Administrator
                         )
                     ) {
+
                         return interaction.reply({
+
                             content:
                                 "❌ Na nastavenie motívu inému používateľovi potrebuješ Administrator.",
+
                             ephemeral: true
                         });
                     }
@@ -751,14 +1189,25 @@ client.on(
 
                 const db = loadDB();
 
-                if (!db.users[interaction.user.id]) {
-                    db.users[interaction.user.id] = {};
+                if (
+                    !db.users[
+                        interaction.user.id
+                    ]
+                ) {
+
+                    db.users[
+                        interaction.user.id
+                    ] = {};
                 }
 
                 const lastUsed =
-                    db.users[interaction.user.id].embedCooldown || 0;
+                    db.users[
+                        interaction.user.id
+                    ].embedCooldown || 0;
 
-                const now = Date.now();
+                const now =
+                    Date.now();
+
                 const cooldown =
                     30 * 60 * 1000;
 
@@ -766,11 +1215,14 @@ client.on(
                     cooldown -
                     (now - lastUsed);
 
+                const isAdmin =
+                    interaction.memberPermissions?.has(
+                        PermissionFlagsBits.Administrator
+                    );
+
                 if (
                     remaining > 0 &&
-                    !interaction.memberPermissions?.has(
-                        PermissionFlagsBits.Administrator
-                    )
+                    !isAdmin
                 ) {
 
                     const minutes =
@@ -779,10 +1231,22 @@ client.on(
                         );
 
                     return interaction.reply({
+
                         content:
                             `⏳ /embed môžeš znova použiť o **${minutes} minút**.`,
+
                         ephemeral: true
                     });
+                }
+
+                // =================================================
+                // SAVE THEME
+                // =================================================
+
+                if (
+                    !db.users[target.id]
+                ) {
+                    db.users[target.id] = {};
                 }
 
                 db.users[target.id].theme =
@@ -794,9 +1258,12 @@ client.on(
                 db.users[target.id].updatedAt =
                     new Date().toISOString();
 
-                // Cooldown sa ukladá osobe,
-                // ktorá použila /embed.
-                db.users[interaction.user.id].embedCooldown =
+                // Cooldown iba pre osobu,
+                // ktorá príkaz použila.
+
+                db.users[
+                    interaction.user.id
+                ].embedCooldown =
                     now;
 
                 saveDB(db);
@@ -804,7 +1271,8 @@ client.on(
                 const embed =
                     createEmbed({
 
-                        userId: target.id,
+                        userId:
+                            target.id,
 
                         title:
                             `${theme.emoji} EMBED MOTÍV NASTAVENÝ`,
@@ -813,24 +1281,91 @@ client.on(
                             `Tvoj embed motív bol nastavený na **${theme.name}**.`,
 
                         fields: [
+
                             {
-                                name: "👤 Používateľ",
+                                name:
+                                    "👤 Používateľ",
                                 value:
                                     `<@${target.id}>`,
                                 inline: true
                             },
+
                             {
-                                name: "🎨 Motív",
+                                name:
+                                    "🎨 Motív",
                                 value:
                                     `${theme.emoji} ${theme.name}`,
+                                inline: true
+                            },
+
+                            {
+                                name:
+                                    "⏳ Cooldown",
+                                value:
+                                    "30 minút",
                                 inline: true
                             }
                         ]
                     });
 
-                // IBA USER, KTORÝ POUŽIL PRÍKAZ
+                // =================================================
+                // LOG EMBED
+                // =================================================
+
+                await sendLog({
+
+                    guild:
+                        interaction.guild,
+
+                    title:
+                        "🎨 /EMBED POUŽITÝ",
+
+                    description:
+                        `Používateľ použil príkaz **/embed**.`,
+
+                    color:
+                        theme.color,
+
+                    fields: [
+
+                        {
+                            name:
+                                "👤 Použil",
+                            value:
+                                `<@${interaction.user.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "🎨 Motív",
+                            value:
+                                `${theme.emoji} ${theme.name}`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "🎯 Nastavené pre",
+                            value:
+                                `<@${target.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "⏱️ Čas",
+                            value:
+                                `<t:${Math.floor(now / 1000)}:F>`
+                        }
+                    ]
+                });
+
+                // IBA USER
                 return interaction.reply({
+
                     embeds: [embed],
+
                     ephemeral: true
                 });
             }
@@ -854,9 +1389,12 @@ client.on(
                         PermissionFlagsBits.Administrator
                     )
                 ) {
+
                     return interaction.reply({
+
                         content:
                             "❌ Tento príkaz môže používať iba Administrator.",
+
                         ephemeral: true
                     });
                 }
@@ -866,7 +1404,10 @@ client.on(
             // ADD RANK
             // =================================================
 
-            if (interaction.commandName === "addrank") {
+            if (
+                interaction.commandName ===
+                "addrank"
+            ) {
 
                 const player =
                     interaction.options.getUser(
@@ -917,79 +1458,129 @@ client.on(
                 let color;
 
                 if (status === "UP") {
-                    result = "🟢 RANK UP";
-                    color = 0x57F287;
+
+                    result =
+                        "🟢 RANK UP";
+
+                    color =
+                        0x57F287;
+
                 } else if (status === "DOWN") {
-                    result = "🔴 RANK DOWN";
-                    color = 0xED4245;
+
+                    result =
+                        "🔴 RANK DOWN";
+
+                    color =
+                        0xED4245;
+
                 } else {
-                    result = "⚪ BEZ ZMENY";
-                    color = 0x95A5A6;
+
+                    result =
+                        "⚪ BEZ ZMENY";
+
+                    color =
+                        0x95A5A6;
                 }
 
                 const fields = [
+
                     {
-                        name: "👤 Hráč",
+                        name:
+                            "👤 Hráč",
                         value:
                             `<@${player.id}>`,
                         inline: true
                     },
+
                     {
-                        name: "🎮 Gamemode",
+                        name:
+                            "🎮 Gamemode",
                         value:
                             gamemode,
                         inline: true
                     },
+
                     {
-                        name: "🧪 Tester",
+                        name:
+                            "🧪 Tester",
                         value:
                             `<@${interaction.user.id}>`,
                         inline: true
                     },
+
                     {
-                        name: "📉 Predošlý rank",
+                        name:
+                            "📉 Predošlý rank",
                         value:
                             previousRank,
                         inline: true
                     },
+
                     {
-                        name: "📈 Nový rank",
+                        name:
+                            "📈 Nový rank",
                         value:
                             newRank,
                         inline: true
                     },
+
                     {
-                        name: "🔄 Kôl",
+                        name:
+                            "🔄 Kôl",
                         value:
                             rounds !== null
                                 ? String(rounds)
                                 : "None",
                         inline: true
                     },
+
                     {
-                        name: "⭐ Hodnotenie",
+                        name:
+                            "⭐ Hodnotenie",
                         value:
-                            rating || "None"
+                            rating ||
+                            "None"
                     },
+
                     {
-                        name: "📝 Poznámka",
+                        name:
+                            "📝 Poznámka",
                         value:
-                            note || "None"
+                            note ||
+                            "None"
                     }
                 ];
 
-                const db = loadDB();
+                const db =
+                    loadDB();
 
                 db.ranks.push({
-                    player: player.id,
+
+                    player:
+                        player.id,
+
                     gamemode,
+
                     previousRank,
+
                     newRank,
+
                     status,
-                    rounds: rounds ?? null,
-                    rating: rating || "None",
-                    note: note || "None",
-                    tester: interaction.user.id,
+
+                    rounds:
+                        rounds ?? "None",
+
+                    rating:
+                        rating ||
+                        "None",
+
+                    note:
+                        note ||
+                        "None",
+
+                    tester:
+                        interaction.user.id,
+
                     createdAt:
                         new Date().toISOString()
                 });
@@ -999,7 +1590,8 @@ client.on(
                 const embed =
                     createEmbed({
 
-                        userId: player.id,
+                        userId:
+                            player.id,
 
                         title:
                             `${result} • 🏆 RANK TEST`,
@@ -1015,6 +1607,54 @@ client.on(
                             player.displayAvatarURL()
                     });
 
+                await sendLog({
+
+                    guild:
+                        interaction.guild,
+
+                    title:
+                        "🏆 /ADDRANK POUŽITÝ",
+
+                    description:
+                        `Bol pridaný nový rank test.`,
+
+                    color,
+
+                    fields: [
+
+                        {
+                            name:
+                                "👤 Hráč",
+                            value:
+                                `<@${player.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "🎮 Gamemode",
+                            value:
+                                gamemode,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "📊 Výsledok",
+                            value:
+                                result,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "🧪 Tester",
+                            value:
+                                `<@${interaction.user.id}>`
+                        }
+                    ]
+                });
+
                 return interaction.reply({
                     embeds: [embed]
                 });
@@ -1024,7 +1664,10 @@ client.on(
             // SET TESTER
             // =================================================
 
-            if (interaction.commandName === "settester") {
+            if (
+                interaction.commandName ===
+                "settester"
+            ) {
 
                 const tester =
                     interaction.options.getUser(
@@ -1047,12 +1690,14 @@ client.on(
                 const specialization =
                     interaction.options.getString(
                         "specializacia"
-                    ) || "None";
+                    ) ||
+                    "None";
 
                 const rating =
                     interaction.options.getString(
                         "hodnotenie"
-                    ) || "None";
+                    ) ||
+                    "None";
 
                 const tests =
                     interaction.options.getInteger(
@@ -1067,16 +1712,21 @@ client.on(
                 const manualSuccess =
                     interaction.options.getString(
                         "uspesnost"
-                    ) || "None";
+                    ) ||
+                    "None";
 
                 const note =
                     interaction.options.getString(
                         "poznamka"
-                    ) || "None";
+                    ) ||
+                    "None";
 
-                const db = loadDB();
+                const db =
+                    loadDB();
 
-                db.testers[tester.id] = {
+                db.testers[
+                    tester.id
+                ] = {
 
                     userId:
                         tester.id,
@@ -1110,7 +1760,8 @@ client.on(
                     promotedAt:
                         new Date().toISOString(),
 
-                    active: true
+                    active:
+                        true
                 };
 
                 saveDB(db);
@@ -1128,26 +1779,34 @@ client.on(
                             `## ${tester.username}\nPoužívateľ bol povýšený na testera.`,
 
                         fields: [
+
                             {
-                                name: "👤 Tester",
+                                name:
+                                    "👤 Tester",
                                 value:
                                     `<@${tester.id}>`,
                                 inline: true
                             },
+
                             {
-                                name: "🎮 Gamemode",
+                                name:
+                                    "🎮 Gamemode",
                                 value:
                                     gamemode,
                                 inline: true
                             },
+
                             {
-                                name: "🏅 Rank",
+                                name:
+                                    "🏅 Rank",
                                 value:
                                     rank,
                                 inline: true
                             },
+
                             {
-                                name: "🧪 Testy",
+                                name:
+                                    "🧪 Testy",
                                 value:
                                     String(
                                         tests !== null
@@ -1156,8 +1815,10 @@ client.on(
                                     ),
                                 inline: true
                             },
+
                             {
-                                name: "✅ Úspešné",
+                                name:
+                                    "✅ Úspešné",
                                 value:
                                     String(
                                         successful !== null
@@ -1166,29 +1827,39 @@ client.on(
                                     ),
                                 inline: true
                             },
+
                             {
-                                name: "📈 Úspešnosť",
+                                name:
+                                    "📈 Úspešnosť",
                                 value:
                                     manualSuccess,
                                 inline: true
                             },
+
                             {
-                                name: "🎯 Špecializácia",
+                                name:
+                                    "🎯 Špecializácia",
                                 value:
                                     specialization
                             },
+
                             {
-                                name: "⭐ Hodnotenie",
+                                name:
+                                    "⭐ Hodnotenie",
                                 value:
                                     rating
                             },
+
                             {
-                                name: "👑 Povýšil",
+                                name:
+                                    "👑 Povýšil",
                                 value:
                                     `<@${interaction.user.id}>`
                             },
+
                             {
-                                name: "📝 Poznámka",
+                                name:
+                                    "📝 Poznámka",
                                 value:
                                     note
                             }
@@ -1197,6 +1868,55 @@ client.on(
                         thumbnail:
                             tester.displayAvatarURL()
                     });
+
+                await sendLog({
+
+                    guild:
+                        interaction.guild,
+
+                    title:
+                        "🧪 /SETTESTER POUŽITÝ",
+
+                    description:
+                        `Bol nastavený nový tester.`,
+
+                    color:
+                        0x57F287,
+
+                    fields: [
+
+                        {
+                            name:
+                                "👤 Tester",
+                            value:
+                                `<@${tester.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "🎮 Gamemode",
+                            value:
+                                gamemode,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "🏅 Rank",
+                            value:
+                                rank,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "👑 Nastavil",
+                            value:
+                                `<@${interaction.user.id}>`
+                        }
+                    ]
+                });
 
                 return interaction.reply({
                     embeds: [embed]
@@ -1207,14 +1927,19 @@ client.on(
             // TESTER INFO
             // =================================================
 
-            if (interaction.commandName === "testerinfo") {
+            if (
+                interaction.commandName ===
+                "testerinfo"
+            ) {
 
                 const user =
                     interaction.options.getUser(
                         "tester"
-                    ) || interaction.user;
+                    ) ||
+                    interaction.user;
 
-                const db = loadDB();
+                const db =
+                    loadDB();
 
                 const tester =
                     db.testers[user.id];
@@ -1223,9 +1948,12 @@ client.on(
                     !tester ||
                     !tester.active
                 ) {
+
                     return interaction.reply({
+
                         content:
                             "❌ Tento používateľ nie je aktívny tester.",
+
                         ephemeral: true
                     });
                 }
@@ -1240,59 +1968,87 @@ client.on(
                             `🧪 TESTER • ${user.username}`,
 
                         fields: [
+
                             {
-                                name: "🎮 Gamemode",
+                                name:
+                                    "🎮 Gamemode",
                                 value:
-                                    tester.gamemode || "None",
+                                    tester.gamemode ||
+                                    "None",
                                 inline: true
                             },
+
                             {
-                                name: "🏅 Rank",
+                                name:
+                                    "🏅 Rank",
                                 value:
-                                    tester.rank || "None",
+                                    tester.rank ||
+                                    "None",
                                 inline: true
                             },
+
                             {
-                                name: "🧪 Testy",
+                                name:
+                                    "🧪 Testy",
                                 value:
                                     String(
-                                        tester.tests ?? "None"
+                                        tester.tests ??
+                                        "None"
                                     ),
                                 inline: true
                             },
+
                             {
-                                name: "✅ Úspešné",
+                                name:
+                                    "✅ Úspešné",
                                 value:
                                     String(
-                                        tester.successful ?? "None"
+                                        tester.successful ??
+                                        "None"
                                     ),
                                 inline: true
                             },
+
                             {
-                                name: "📈 Úspešnosť",
+                                name:
+                                    "📈 Úspešnosť",
                                 value:
-                                    tester.successRate || "None",
+                                    tester.successRate ||
+                                    "None",
                                 inline: true
                             },
+
                             {
-                                name: "🎯 Špecializácia",
+                                name:
+                                    "🎯 Špecializácia",
                                 value:
-                                    tester.specialization || "None"
+                                    tester.specialization ||
+                                    "None"
                             },
+
                             {
-                                name: "⭐ Hodnotenie",
+                                name:
+                                    "⭐ Hodnotenie",
                                 value:
-                                    tester.rating || "None"
+                                    tester.rating ||
+                                    "None"
                             },
+
                             {
-                                name: "👑 Povýšil",
+                                name:
+                                    "👑 Povýšil",
                                 value:
-                                    `<@${tester.promotedBy}>`
+                                    tester.promotedBy
+                                        ? `<@${tester.promotedBy}>`
+                                        : "None"
                             },
+
                             {
-                                name: "📝 Poznámka",
+                                name:
+                                    "📝 Poznámka",
                                 value:
-                                    tester.note || "None"
+                                    tester.note ||
+                                    "None"
                             }
                         ],
 
@@ -1309,9 +2065,13 @@ client.on(
             // TESTERS
             // =================================================
 
-            if (interaction.commandName === "testers") {
+            if (
+                interaction.commandName ===
+                "testers"
+            ) {
 
-                const db = loadDB();
+                const db =
+                    loadDB();
 
                 const testers =
                     Object.values(
@@ -1323,7 +2083,9 @@ client.on(
 
                 let text;
 
-                if (testers.length === 0) {
+                if (
+                    testers.length === 0
+                ) {
 
                     text =
                         "Momentálne nemáme žiadnych aktívnych testerov.";
@@ -1333,8 +2095,11 @@ client.on(
                     text =
                         testers
                             .map(
-                                (tester, index) =>
-                                    `**${index + 1}.** <@${tester.userId}> — **${tester.rank}** • ${tester.gamemode}`
+                                (
+                                    tester,
+                                    index
+                                ) =>
+                                    `**${index + 1}.** <@${tester.userId}> — **${tester.rank || "None"}** • ${tester.gamemode || "None"}`
                             )
                             .join("\n");
                 }
@@ -1349,6 +2114,7 @@ client.on(
                             "🧪 AKTÍVNI TESTERI",
 
                         fields: [
+
                             {
                                 name:
                                     "🧪 Aktívni testeri",
@@ -1381,9 +2147,11 @@ client.on(
                 const reason =
                     interaction.options.getString(
                         "dovod"
-                    ) || "None";
+                    ) ||
+                    "None";
 
-                const db = loadDB();
+                const db =
+                    loadDB();
 
                 if (
                     !db.testers[tester.id] ||
@@ -1391,22 +2159,32 @@ client.on(
                 ) {
 
                     return interaction.reply({
+
                         content:
                             "❌ Tento používateľ nie je aktívny tester.",
+
                         ephemeral: true
                     });
                 }
 
-                db.testers[tester.id].active =
+                db.testers[
+                    tester.id
+                ].active =
                     false;
 
-                db.testers[tester.id].removedBy =
+                db.testers[
+                    tester.id
+                ].removedBy =
                     interaction.user.id;
 
-                db.testers[tester.id].removedAt =
+                db.testers[
+                    tester.id
+                ].removedAt =
                     new Date().toISOString();
 
-                db.testers[tester.id].removeReason =
+                db.testers[
+                    tester.id
+                ].removeReason =
                     reason;
 
                 saveDB(db);
@@ -1427,25 +2205,72 @@ client.on(
                             0xED4245,
 
                         fields: [
+
                             {
-                                name: "👤 Tester",
+                                name:
+                                    "👤 Tester",
                                 value:
                                     `<@${tester.id}>`,
                                 inline: true
                             },
+
                             {
-                                name: "👑 Odobral",
+                                name:
+                                    "👑 Odobral",
                                 value:
                                     `<@${interaction.user.id}>`,
                                 inline: true
                             },
+
                             {
-                                name: "📝 Dôvod",
+                                name:
+                                    "📝 Dôvod",
                                 value:
                                     reason
                             }
                         ]
                     });
+
+                await sendLog({
+
+                    guild:
+                        interaction.guild,
+
+                    title:
+                        "🚫 /REMOVETESTER POUŽITÝ",
+
+                    description:
+                        `Testerovi bol odobratý status.`,
+
+                    color:
+                        0xED4245,
+
+                    fields: [
+
+                        {
+                            name:
+                                "👤 Tester",
+                            value:
+                                `<@${tester.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "👑 Odobral",
+                            value:
+                                `<@${interaction.user.id}>`,
+                            inline: true
+                        },
+
+                        {
+                            name:
+                                "📝 Dôvod",
+                            value:
+                                reason
+                        }
+                    ]
+                });
 
                 return interaction.reply({
                     embeds: [embed]
@@ -1464,10 +2289,14 @@ client.on(
                 !interaction.replied &&
                 !interaction.deferred
             ) {
+
                 await interaction.reply({
+
                     content:
                         "❌ Pri vykonávaní príkazu nastala chyba.",
+
                     ephemeral: true
+
                 }).catch(() => {});
             }
         }
@@ -1479,10 +2308,13 @@ client.on(
 // =====================================================
 
 http.createServer(
+
     (req, res) => {
 
         res.writeHead(
+
             200,
+
             {
                 "Content-Type":
                     "text/plain; charset=utf-8"
@@ -1493,9 +2325,13 @@ http.createServer(
             "CZ/SK/EN Global Ranking Bot ONLINE"
         );
     }
+
 ).listen(
+
     PORT,
+
     "0.0.0.0",
+
     () => {
 
         console.log(
@@ -1513,6 +2349,7 @@ console.log(
 );
 
 client.login(TOKEN)
+
     .then(() => {
 
         console.log(
@@ -1520,6 +2357,7 @@ client.login(TOKEN)
         );
 
     })
+
     .catch(error => {
 
         console.error(
