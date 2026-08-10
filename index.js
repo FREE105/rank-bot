@@ -67,6 +67,7 @@ function loadDB() {
         if (!db.ranks) db.ranks = [];
 
         return db;
+
     } catch (error) {
         console.error("❌ Chyba databázy:", error);
 
@@ -90,6 +91,7 @@ function saveDB(db) {
 // =====================================================
 
 const THEMES = {
+
     classic: {
         name: "Classic",
         emoji: "⬜",
@@ -327,14 +329,20 @@ function createEmbed({
 
 const commands = [
 
+    // =================================================
     // PING
+    // =================================================
+
     new SlashCommandBuilder()
         .setName("ping")
         .setDescription(
             "Skontroluje, či bot funguje"
         ),
 
+    // =================================================
     // HELP
+    // =================================================
+
     new SlashCommandBuilder()
         .setName("help")
         .setDescription(
@@ -533,6 +541,7 @@ const commands = [
                     "Počet kôl"
                 )
                 .setMinValue(1)
+                .setRequired(false)
         )
 
         .addStringOption(option =>
@@ -541,6 +550,7 @@ const commands = [
                 .setDescription(
                     "Hodnotenie"
                 )
+                .setRequired(false)
         )
 
         .addStringOption(option =>
@@ -549,6 +559,7 @@ const commands = [
                 .setDescription(
                     "Poznámka"
                 )
+                .setRequired(false)
         ),
 
     // =================================================
@@ -574,7 +585,7 @@ const commands = [
             option
                 .setName("gamemode")
                 .setDescription(
-                    "POVINNÉ — Gamemode"
+                    "Gamemode"
                 )
                 .setRequired(true)
         )
@@ -583,19 +594,9 @@ const commands = [
             option
                 .setName("rank")
                 .setDescription(
-                    "POVINNÉ — rank testera"
+                    "Rank testera"
                 )
                 .setRequired(true)
-        )
-
-        .addIntegerOption(option =>
-            option
-                .setName("skusenosti")
-                .setDescription(
-                    "POVINNÉ — XP"
-                )
-                .setRequired(true)
-                .setMinValue(0)
         )
 
         .addStringOption(option =>
@@ -604,6 +605,7 @@ const commands = [
                 .setDescription(
                     "Špecializácia"
                 )
+                .setRequired(false)
         )
 
         .addStringOption(option =>
@@ -612,6 +614,7 @@ const commands = [
                 .setDescription(
                     "Hodnotenie testera"
                 )
+                .setRequired(false)
         )
 
         .addIntegerOption(option =>
@@ -621,6 +624,7 @@ const commands = [
                     "Počet testov"
                 )
                 .setMinValue(0)
+                .setRequired(false)
         )
 
         .addIntegerOption(option =>
@@ -630,6 +634,16 @@ const commands = [
                     "Počet úspešných testov"
                 )
                 .setMinValue(0)
+                .setRequired(false)
+        )
+
+        .addStringOption(option =>
+            option
+                .setName("uspesnost")
+                .setDescription(
+                    "Manuálna úspešnosť, napr. 85%"
+                )
+                .setRequired(false)
         )
 
         .addStringOption(option =>
@@ -638,9 +652,13 @@ const commands = [
                 .setDescription(
                     "Ďalšia poznámka"
                 )
+                .setRequired(false)
         ),
 
+    // =================================================
     // TESTER INFO
+    // =================================================
+
     new SlashCommandBuilder()
         .setName("testerinfo")
         .setDescription(
@@ -653,16 +671,23 @@ const commands = [
                 .setDescription(
                     "Tester"
                 )
+                .setRequired(false)
         ),
 
+    // =================================================
     // TESTERS
+    // =================================================
+
     new SlashCommandBuilder()
         .setName("testers")
         .setDescription(
             "Zobrazí zoznam aktívnych testerov"
         ),
 
+    // =================================================
     // REMOVE TESTER
+    // =================================================
+
     new SlashCommandBuilder()
         .setName("removetester")
         .setDescription(
@@ -684,6 +709,7 @@ const commands = [
                 .setDescription(
                     "Dôvod"
                 )
+                .setRequired(false)
         )
 ];
 
@@ -931,9 +957,6 @@ client.on(
                             true
                     });
                 }
-
-                // Ak nastavuješ motív niekomu inému,
-                // musíš byť Administrator.
 
                 if (
                     target.id !==
@@ -1193,31 +1216,25 @@ client.on(
                         value:
                             rounds !== null
                                 ? String(rounds)
-                                : "Neuvedené",
+                                : "None",
                         inline:
                             true
                     }
                 ];
 
-                if (rating) {
+                fields.push({
+                    name:
+                        "⭐ Hodnotenie",
+                    value:
+                        rating || "None"
+                });
 
-                    fields.push({
-                        name:
-                            "⭐ Hodnotenie",
-                        value:
-                            rating
-                    });
-                }
-
-                if (note) {
-
-                    fields.push({
-                        name:
-                            "📝 Poznámka",
-                        value:
-                            note
-                    });
-                }
+                fields.push({
+                    name:
+                        "📝 Poznámka",
+                    value:
+                        note || "None"
+                });
 
                 const db =
                     loadDB();
@@ -1235,11 +1252,16 @@ client.on(
 
                     status,
 
-                    rounds,
+                    rounds:
+                        rounds !== null
+                            ? rounds
+                            : "None",
 
-                    rating,
+                    rating:
+                        rating || "None",
 
-                    note,
+                    note:
+                        note || "None",
 
                     tester:
                         interaction.user.id,
@@ -1302,39 +1324,39 @@ client.on(
                         true
                     );
 
-                const xp =
-                    interaction.options.getInteger(
-                        "skusenosti",
-                        true
-                    );
-
                 const specialization =
                     interaction.options.getString(
                         "specializacia"
                     ) ||
-                    "Neuvedená";
+                    "None";
 
                 const rating =
                     interaction.options.getString(
                         "hodnotenie"
                     ) ||
-                    "Neuvedené";
+                    "None";
 
                 const tests =
                     interaction.options.getInteger(
                         "testy"
-                    ) ?? 0;
+                    );
 
                 const successful =
                     interaction.options.getInteger(
                         "uspesne_testy"
-                    ) ?? 0;
+                    );
+
+                const successRate =
+                    interaction.options.getString(
+                        "uspesnost"
+                    ) ||
+                    "None";
 
                 const note =
                     interaction.options.getString(
                         "poznamka"
                     ) ||
-                    "Žiadna poznámka";
+                    "None";
 
                 const db =
                     loadDB();
@@ -1348,15 +1370,21 @@ client.on(
 
                     rank,
 
-                    xp,
-
                     specialization,
 
                     rating,
 
-                    tests,
+                    tests:
+                        tests !== null
+                            ? tests
+                            : "None",
 
-                    successful,
+                    successful:
+                        successful !== null
+                            ? successful
+                            : "None",
+
+                    successRate,
 
                     note,
 
@@ -1371,15 +1399,6 @@ client.on(
                 };
 
                 saveDB(db);
-
-                const successRate =
-                    tests > 0
-                        ? Math.round(
-                            successful /
-                            tests *
-                            100
-                        )
-                        : 0;
 
                 const embed =
                     createEmbed({
@@ -1424,27 +1443,26 @@ client.on(
 
                             {
                                 name:
-                                    "⭐ Skúsenosti",
-                                value:
-                                    `${xp} XP`,
-                                inline:
-                                    true
-                            },
-
-                            {
-                                name:
                                     "🧪 Testy",
                                 value:
-                                    String(tests),
+                                    String(
+                                        tests !== null
+                                            ? tests
+                                            : "None"
+                                    ),
                                 inline:
                                     true
                             },
 
                             {
                                 name:
-                                    "✅ Úspešné",
+                                    "✅ Úspešné testy",
                                 value:
-                                    String(successful),
+                                    String(
+                                        successful !== null
+                                            ? successful
+                                            : "None"
+                                    ),
                                 inline:
                                     true
                             },
@@ -1453,7 +1471,7 @@ client.on(
                                 name:
                                     "📈 Úspešnosť",
                                 value:
-                                    `${successRate}%`,
+                                    successRate,
                                 inline:
                                     true
                             },
@@ -1530,15 +1548,6 @@ client.on(
                     });
                 }
 
-                const successRate =
-                    tester.tests > 0
-                        ? Math.round(
-                            tester.successful /
-                            tester.tests *
-                            100
-                        )
-                        : 0;
-
                 const embed =
                     createEmbed({
 
@@ -1554,7 +1563,7 @@ client.on(
                                 name:
                                     "🎮 Gamemode",
                                 value:
-                                    tester.gamemode,
+                                    tester.gamemode || "None",
                                 inline:
                                     true
                             },
@@ -1563,16 +1572,7 @@ client.on(
                                 name:
                                     "🏅 Rank",
                                 value:
-                                    tester.rank,
-                                inline:
-                                    true
-                            },
-
-                            {
-                                name:
-                                    "⭐ XP",
-                                value:
-                                    String(tester.xp),
+                                    tester.rank || "None",
                                 inline:
                                     true
                             },
@@ -1581,16 +1581,22 @@ client.on(
                                 name:
                                     "🧪 Testy",
                                 value:
-                                    String(tester.tests),
+                                    String(
+                                        tester.tests ??
+                                        "None"
+                                    ),
                                 inline:
                                     true
                             },
 
                             {
                                 name:
-                                    "✅ Úspešné",
+                                    "✅ Úspešné testy",
                                 value:
-                                    String(tester.successful),
+                                    String(
+                                        tester.successful ??
+                                        "None"
+                                    ),
                                 inline:
                                     true
                             },
@@ -1599,7 +1605,8 @@ client.on(
                                 name:
                                     "📈 Úspešnosť",
                                 value:
-                                    `${successRate}%`,
+                                    tester.successRate ??
+                                    "None",
                                 inline:
                                     true
                             },
@@ -1608,28 +1615,33 @@ client.on(
                                 name:
                                     "🎯 Špecializácia",
                                 value:
-                                    tester.specialization
+                                    tester.specialization ||
+                                    "None"
                             },
 
                             {
                                 name:
                                     "⭐ Hodnotenie",
                                 value:
-                                    tester.rating
+                                    tester.rating ||
+                                    "None"
                             },
 
                             {
                                 name:
                                     "👑 Povýšil",
                                 value:
-                                    `<@${tester.promotedBy}>`
+                                    tester.promotedBy
+                                        ? `<@${tester.promotedBy}>`
+                                        : "None"
                             },
 
                             {
                                 name:
                                     "📝 Poznámka",
                                 value:
-                                    tester.note
+                                    tester.note ||
+                                    "None"
                             }
                         ],
 
@@ -1677,7 +1689,7 @@ client.on(
                         testers
                             .map(
                                 (tester, index) =>
-                                    `**${index + 1}.** <@${tester.userId}> — **${tester.rank}** • ${tester.gamemode} • ⭐ ${tester.xp} XP`
+                                    `**${index + 1}.** <@${tester.userId}> — **${tester.rank || "None"}** • ${tester.gamemode || "None"}`
                             )
                             .join("\n");
                 }
@@ -1726,7 +1738,7 @@ client.on(
                     interaction.options.getString(
                         "dovod"
                     ) ||
-                    "Bez dôvodu";
+                    "None";
 
                 const db =
                     loadDB();
